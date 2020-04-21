@@ -1,0 +1,48 @@
+---
+
+# yum install audispd-plugins
+- name: "Install audispd-plugins"
+  yum:
+    name: "audispd-plugins"
+    state: latest
+  when:
+    - ansible_distribution_major_version == "7"
+
+# /etc/audisp/plugins.d/syslog.conf : active = yes
+- name: "Config audisp plugin for syslog"
+  lineinfile:
+    path: /etc/audisp/plugins.d/syslog.conf
+    state: present
+    regexp: '^active ='
+    line: "active = yes"
+  when:
+    - ansible_distribution_major_version == "7"
+
+# /etc/audit/auditd.conf : max_log_file_action = ROTATE
+- name: "Config rotate audit log"
+  lineinfile:
+    path: /etc/audit/auditd.conf
+    state: present
+    regexp: '^max_log_file_action ='
+    line: "max_log_file_action = ROTATE"
+  when:
+    - ansible_distribution_major_version == "7"
+
+# - name: "Restart audit service"
+#   service:
+#     name: auditd
+#     state: restarted
+#   when:
+#     - ansible_distribution_major_version == "7"
+
+- name: "Restart audit service"
+  raw: service auditd restart
+  when:
+    - ansible_distribution_major_version == "7"
+
+- name: "Restart rsyslog service"
+  service:
+    name: rsyslog
+    state: restarted
+  when:
+    - ansible_distribution_major_version == "7"

@@ -1,0 +1,20 @@
+---
+
+- name: create user in ipa
+  hosts: vpn[0]
+  become: no
+  vars:
+    action: "ipa"
+  roles:
+    - create-user-idm-and-vpn
+
+- name: config ip in vpn server
+  hosts: vpn
+  become: yes
+  become_user: root
+  vars:
+    action: "vpn"
+  roles:
+    - create-user-idm-and-vpn
+
+

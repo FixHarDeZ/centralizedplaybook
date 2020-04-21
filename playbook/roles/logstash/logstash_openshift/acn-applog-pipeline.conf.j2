@@ -1,0 +1,82 @@
+input {
+  beats {
+    port => 5044
+  }
+}
+
+filter {
+  if ![kubernetes][labels][logType] or [kubernetes][labels][logType] == "application"  {
+    if [log] !~ /^\s*[^\|]+(\|\s*\d+\s*)?\|\s*[A-Z].*/ {
+      drop { }
+      # mutate { add_field => { "what" => "nooooooo" } }
+
+    }
+    if [log] =~ /^[^\|]+\|\d+\|.*$/ {
+      mutate { add_field => { "BU" => "%{[kubernetes][labels][appScope]}" } }
+      mutate { add_field => { "PATTERN" => "version" } }
+      grok {
+        patterns_dir => ["/etc/logstash/patterns"]
+        match => { "log" => "%{ACNDEFAULTAPPLOGPATTERN}" }
+      }
+
+      mutate { remove_field => [ "message" ] }
+      mutate { strip => [ "timestamp"] }
+    }
+    else {
+      grok {
+        patterns_dir => ["/etc/logstash/patterns"]
+        match => { "log" => "%{ACNAPPLOGEIGHTCOLUMNv1}" }
+      }
+
+    }
+  } else if [kubernetes][labels][logType] == "httpd" {
+    mutate { add_field => { "BU" => "%{[kubernetes][labels][appScope]}" } }
+    mutate { add_field => { "Module" => "%{[kubernetes][labels][appName]}-httpd" } }
+    grok {
+      match => { "log" => "%{HTTPD_COMMONLOG}" }
+    }
+    mutate { copy => { "timestamp" => "TimeStamp" } }
+    mutate { remove_field => [ "timestamp" ] }
+  } else if [kubernetes][labels][logType] == "nignx" {
+    mutate { add_field => { "BU" => "%{[kubernetes][labels][appScope]}" } }
+    mutate { add_field => { "Module" => "%{[kubernetes][labels][appName]}-nignx" } }
+    grok {
+      patterns_dir => ["/etc/logstash/patterns"]
+      match => { "log" => "%{NGINX_ACCESS}" }
+    }
+  } else {
+    drop { }
+  }
+  if !([Module]) {
+    drop { }
+  }
+  mutate { lowercase => ["Module"] }
+  mutate { lowercase => ["BU"] }
+  date {
+    # 2018-08-21T06:59:59.646+07:00
+    match => [ "TimeStamp", "dd/MM/yyyy HH:mm:ss:SSS", "ISO8601", "YYYY-MM-dd HH:mm:ss" ]
+    locale => "en"
+    target => "@timestamp"
+    # remove_field => [ "TimeStamp", "time" ]
+  }
+
+output {
+  elasticsearch {
+    hosts =>  [{% for els_node in groups['elasticsearch-client'] %}{% if loop.index > 1 %},{% endif %}"{{ hostvars[els_node]['node_domain_name'] }}:9200"{% endfor %}]
+    index => "acn-applog-%{BU}-%{service}-%{+YYYY.MM.dd}"
+    manage_template => false
+    template_name => "applog_1"
+    codec => "json_lines"
+    enable_metric => false
+  }
+  rabbitmq {
+    vhost => 'log-messages'
+    exchange => 'log-messages'
+    exchange_type => 'fanout'
+    host => 'rabbitmq.{{ search_domain }}'
+    user => 'log-messages'
+    password => 'log-messages'
+    persistent => true
+    port => 5672
+  }
+}

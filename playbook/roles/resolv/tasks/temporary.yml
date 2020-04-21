@@ -1,0 +1,35 @@
+---
+
+- name: replace resolv.conf for ocp
+  template:
+    src: resolv_ocp.conf.j2
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: 0644
+  when:
+    - is_ocp == True
+
+- name: replace resolv.conf for non-ocp
+  template:
+    src: resolv_non_ocp.conf.j2
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: 0644
+  when:
+    - is_ocp == False
+
+- raw: nmcli con mod eth0 ipv4.dns "{{ dns1 }} {{ dns2 }}"
+  when:
+    - ansible_distribution_major_version == "7"
+    
+- raw: nmcli conn mod eth0 ipv4.dns-search "{{ search_domain }}"
+  when:
+    - is_ocp == False
+    - ansible_distribution_major_version == "7"
+
+- raw: nmcli conn mod eth0 ipv4.dns-search "{{ search_domain2 }} {{ search_domain }}"
+  when:
+    - is_ocp == True
+    - ansible_distribution_major_version == "7"

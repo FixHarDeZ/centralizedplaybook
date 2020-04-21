@@ -1,0 +1,46 @@
+---
+#- name: add repo prometheus
+#  yum_repository:
+#    name: prometheus
+#    description: prometheus
+#    file: prometheus
+#    baseurl: https://packagecloud.io/prometheus-rpm/release/el/7/$basearch
+#    gpgkey: https://packagecloud.io/prometheus-rpm/release/gpgkey  https://raw.githubusercontent.com/lest/prometheus-rpm/master/RPM-GPG-KEY-prometheus-rpm
+#    gpgcheck: yes
+
+#- name: yum install node_exporter
+#  yum:
+#    name: node_exporter
+#    state: present
+    
+#- name: copy file package node_exporter
+#  copy:
+#    src: node_exporter-0.16.0-3.el7.centos.x86_64.rpm
+#    dest: /tmp/node_exporter-0.16.0-3.el7.centos.x86_64.rpm
+    
+- name: run rpm
+  yum:
+    name: node_exporter-0.16.0-3.el7.centos
+    state: present
+
+- name: node_exporter systemd status
+  lineinfile:
+    path: /usr/lib/systemd/system/node_exporter.service
+    regexp: "^User="
+    line: 'User=root'
+
+- name: check service node_exporter
+  service:  name=node_exporter state=restarted enabled=yes
+  register: service_result
+
+- name: config iptables allow 9100
+  iptables:
+    action: insert
+    chain: INPUT
+    protocol: tcp
+    match: tcp
+    destination_port: 9100
+    jump: ACCEPT
+    comment: node_exporter 9100
+    state: present
+  register: iptables_reg

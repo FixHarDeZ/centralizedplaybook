@@ -1,0 +1,81 @@
+---
+
+- name: Create directory for temporaly file(s)
+  file:
+    path: /tmp/_temp_redis/
+    state: directory
+  when: redis_group == "all"
+
+- name: Push RPM file to remote server(s)
+  copy:
+    src: rpm/redis-5.0.1-1.el7.remi.x86_64.rpm
+    dest: /tmp/_temp_redis/
+  when: redis_group == "all"
+
+- name: Install redis from RPM
+  yum:
+    name: /tmp/_temp_redis/redis-5.0.1-1.el7.remi.x86_64.rpm
+    state: present
+  when: redis_group == "all"
+
+# - name: Config redis-server
+#   lineinfile:
+#     path: /etc/redis.conf
+#     regexp: '{{ item.regexp }}'
+#     line: '{{ item.line }}'
+#   with_items:
+#     - { regexp: "", line: "" }
+#     - { regexp: "", line: "" }
+#     - { regexp: "", line: "" }
+#   when: redis_group == "node"
+
+- name: Start and Enable service redis-server
+  systemd:
+    name: redis
+    state: restarted
+    enabled: yes
+  when: redis_group == "node"
+
+- name: Start and Enable service redis-sentinel
+  systemd:
+    name: redis-sentinel
+    state: restarted
+    enabled: yes
+  when: redis_group == "sentinel"
+
+- name: Config redis-sentinel "sentinel monitor"
+  lineinfile:
+    path: /etc/redis-sentinel.conf
+    regexp: '^sentinel monitor mymaster'
+    line: 'sentinel monitor mymaster {{ my_redis_master_ip }} {{ my_redis_port }} 3'
+  with_items: "{{ my_redis_node_ip }}"
+  when: redis_group == "sentinel"
+
+- name: Config redis-sentinel "sentinel known-replica"
+  lineinfile:
+    path: /etc/redis-sentinel.conf
+    line: 'sentinel known-replica mymaster {{ item }} {{ my_redis_port }}'
+  with_items: "{{ my_redis_node_ip }}"
+  when: redis_group == "sentinel"
+
+- name: Config redis-sentinel "sentinel known-sentinel"
+  lineinfile:
+    path: /etc/redis-sentinel.conf
+    line: 'sentinel known-sentinel mymaster {{ item }} {{ my_sentinel_port }}'
+  with_items: "{{ my_sentinel_ip }}"
+  when: redis_group == "sentinel"
+
+- name: Start and Enable service redis-server
+  systemd:
+    name: redis
+    state: restarted
+    enabled: yes
+  when: redis_group == "redis"
+
+- name: Start and Enable service redis-sentinel
+  systemd:
+    name: redis-sentinel
+    state: restarted
+    enabled: yes
+  when: redis_group == "sentinel"
+

@@ -1,0 +1,14 @@
+vars:
+  prometheus_setup:
+    1:
+      name: 'prometheus'
+      fname: 'prometheus.yml'
+    2:
+      name: 'prometheus-config'
+      fname: 'prometheus-config.yml'
+    3:
+      name: 'prometheus-route'
+      fname: 'prometheus-route.yml'
+    #4:
+    #  name: 'kube-state-metrices'
+    #  fname: 'kube-state-metrices.yml'

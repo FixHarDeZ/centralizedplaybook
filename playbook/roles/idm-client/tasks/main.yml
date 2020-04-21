@@ -1,0 +1,107 @@
+---
+
+- name: update dbus package
+  yum:
+    name: dbus
+    state: latest
+  register: update_dbus
+  tags:
+    - install_ipa_update_dbus
+    - install_ipa
+
+- name: Restart server
+  command: /sbin/shutdown -r +1
+  async: 0
+  poll: 0
+  ignore_errors: true
+  when: update_dbus.changed == true
+  tags:
+    - install_ipa_reboot_server
+    - install_ipa
+
+- name: Delay for reboot
+  pause:
+    minutes: 2
+  delegate_to: localhost
+  when: update_dbus.changed == true
+  tags:
+    - install_ipa_reboot_server
+    - install_ipa
+
+- name: waiting for reboot server
+  local_action: 
+    module: wait_for
+    host: "{{ inventory_hostname }}"
+    search_regex: OpenSSH
+    connect_timeout: 20
+    port: 22
+    sleep: 20
+    delay: 90
+    timeout: 300
+    become: false
+  become: false
+  ignore_errors: yes
+  when: update_dbus.changed == true
+  tags:
+    - install_ipa_reboot_server
+    - install_ipa
+
+- name: Install IDM client package
+  yum:
+    name: ipa-client
+    state: latest
+  tags:
+    - install_ipa
+
+- name: Register client to ipa server
+  shell: >
+    ipa-client-install 
+    --server={{ipa_env_endpoint}}
+    --domain={{search_domain}} 
+    --realm={{search_domain|upper}} 
+    --mkhomedir 
+    --no-ntp 
+    --unattended 
+    --force-join 
+    --password='{{ ipa_admin_password }}' 
+    --principal '{{ ipa_admin_username }}' 
+  register: ipa_client_install 
+  failed_when: ipa_client_install.rc == 1 
+  changed_when: ipa_client_install.rc == 0
+  tags:
+    - install_ipa_register
+    - install_ipa
+
+- name: Restart Service
+  service:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+    enabled: yes
+  with_items:
+    - { name: "sssd", state: "restarted" }
+    - { name: "sshd", state: "restarted" }
+  tags:
+    - install_ipa_restart_service
+    - install_ipa
+
+- name: Disable default user CentOS
+  user:
+    name: centos
+    expires: -1
+    password: "{{ password_default_user | password_hash('sha512') }}"
+  when: 
+    - ansible_distribution == "CentOS"
+    - changed_password_default_user
+  tags:
+    - changed_password
+
+- name: Disable default user RedHat
+  user:
+    name: redhat
+    expires: -1
+    password: "{{ password_default_user | password_hash('sha512') }}"
+  when: 
+    - ansible_distribution == "RedHat"
+    - changed_password_default_user
+  tags:
+    - changed_password

@@ -1,0 +1,9 @@
+---
+- name: copy file shell script to ansible
+  copy:
+    src: nfs-folder-hidden.sh
+    dest: /opt//nfs-folder-hidden.sh
+    mode: u=rwx,g=rwx,o=r
+    
+- name: shell script nfs-folder-hidden.sh
+  shell: /opt//nfs-folder-hidden.sh

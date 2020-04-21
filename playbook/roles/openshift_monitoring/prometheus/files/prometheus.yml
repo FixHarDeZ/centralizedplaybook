@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: Template
+metadata:
+  name: prometheus
+  namespace: monitoring
+parameters:
+- description: The namespace to instantiate prometheus under. Defaults to 'prometheus'.
+  name: NAMESPACE
+  value: prometheus

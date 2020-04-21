@@ -1,0 +1,20 @@
+---
+Service_Group:
+  - { APP_SCOPE: 'nano', SVC_GROUP: 'cicd', ENV: '', CPU: '', MEMMORY: '' }
+  - { APP_SCOPE: 'equator', SVC_GROUP: 'cicd', ENV: '', CPU: '', MEMMORY: '' }
+  - { APP_SCOPE: 'truemoney', SVC_GROUP: 'cicd', ENV: '', CPU: '', MEMMORY: '' }
+  - { APP_SCOPE: 'nano', SVC_GROUP: 'creditpay', ENV: 'production', CPU: '12000', MEMMORY: '26000Mi' }
+  - { APP_SCOPE: 'nano', SVC_GROUP: 'creditpay-db', ENV: 'production', CPU: '', MEMMORY: '' }
+  - { APP_SCOPE: 'nano', SVC_GROUP: 'default', ENV: 'production', CPU: '', MEMMORY: '' }
+  - { APP_SCOPE: 'truemoney', SVC_GROUP: 'asset', ENV: 'production', CPU: '6144', MEMMORY: '12Gi' }
+  - { APP_SCOPE: 'truemoney', SVC_GROUP: 'bill-payment', ENV: 'production', CPU: '143000', MEMMORY: '237619Mi' }
+  - { APP_SCOPE: 'truemoney', SVC_GROUP: 'core', ENV: 'production', CPU: '109000', MEMMORY: '262Gi' }
+  - { APP_SCOPE: 'truemoney', SVC_GROUP: 'dataplatform', ENV: 'production', CPU: '9000', MEMMORY: '30Gi' }
+  - { APP_SCOPE: 'truemoney', SVC_GROUP: 'monitoring', ENV: 'production', CPU: '6000', MEMMORY: '12Gi' }
+  - { APP_SCOPE: 'truemoney', SVC_GROUP: 'product', ENV: 'production', CPU: '34000', MEMMORY: '43000Mi' }
+  - { APP_SCOPE: 'truemoney', SVC_GROUP: 'sof', ENV: 'production', CPU: '11700', MEMMORY: '47924Mi' }
+  - { APP_SCOPE: 'truemoney', SVC_GROUP: 'tmx', ENV: 'production', CPU: '24000', MEMMORY: '34612Mi' }
+  - { APP_SCOPE: 'truemoney', SVC_GROUP: 'kiosk', ENV: 'production', CPU: '14300', MEMMORY: '34611Mi' }
+  - { APP_SCOPE: 'equator', SVC_GROUP: 'default', ENV: 'production', CPU: '', MEMMORY: '' }
+  - { APP_SCOPE: 'nano', SVC_GROUP: 'dataplatform', ENV: 'production', CPU: '2000', MEMMORY: '4Gi' }
+  - { APP_SCOPE: 'truemoney', SVC_GROUP: 'nano-common', ENV: 'production', CPU: '1500', MEMMORY: '4Gi' }

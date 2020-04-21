@@ -1,0 +1,35 @@
+---
+- name: 'CHECK DAEMONSET node-exporter'
+  shell: oc get ds -n monitoring | grep node-exporter
+  register: result
+  ignore_errors: true
+  
+- name: 'OC  PATCH NAMESPACE DEAMONSET monitoring'
+  command: oc patch namespace monitoring -p '{"metadata":{"annotations":{"openshift.io/node-selector":""}}}'
+  ignore_errors: true
+
+- name: "CLONE DEPLOYMENT FILE FOR: node_exporter"
+  template:
+    src: 'files/prom-node_exporter.yml'
+    dest: '/tmp/prom-node_exporter.yml'
+  when: result.stdout == ""
+
+- name: 'OC  CREATE DAEMONSET FOR: node_exporter'
+  command: oc create -f  /tmp/prom-node_exporter.yml
+  register: add_node_result
+  ignore_errors: true
+  when: result.stdout == ""
+  
+- name: 'OC POLICY anyuid monitoring'
+  command: oadm policy add-scc-to-user anyuid -z default -n monitoring
+  ignore_errors: true
+
+
+- name: 'DELETE DEPLOYMENT FILE FOR: node_exporter'
+  file:
+    dest: "/tmp/prom-node_exporter.yml"
+    state: absent
+    
+#- debug: var=pod_id
+
+#- debug: var=openshift_router_password

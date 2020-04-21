@@ -1,0 +1,10 @@
+--- 
+# setup instance prometheus system aggregate
+- hosts: instance-prometheus_lecagy
+  become: yes
+  become_user: root
+  vars:
+    homedir: /etc/prometheus
+  roles:
+    - { role: openshift_monitoring/prometheus-packages }
+    - { role: openshift_monitoring/prometheus-service, action: 'legacy' }

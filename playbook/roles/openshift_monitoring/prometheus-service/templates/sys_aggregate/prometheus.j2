@@ -1,0 +1,144 @@
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  scrape_timeout: 15s # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alert_relabel_configs:
+  - replacement: '{{ hostvars[groups['instance-prometheus_sys_aggregate'][0]].cluster_name }}'
+    target_label: cluster_name
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - '{{vars.groups['instance-alertmanager'][0]}}:9093'
+       
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "./rules/infra/*.yml"
+  - "./rules/app/*.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ['localhost:9090']
+
+
+  - job_name: 'federate_sys_openshift'
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    scrape_interval: 15s
+    scrape_timeout: 15s
+    honor_labels: true
+    metrics_path: '/federate'
+    relabel_configs:
+    - replacement: "openshift"
+      target_label: "instance_group"
+    params:
+      'match[]':
+        - '{__name__=~".+"}'
+    static_configs:
+      - targets:
+        - '{{ hostvars[groups['instance-prometheus_sys_aggregate'][0]].federate_host }}'
+   
+  - job_name: 'haproxy_exporter_public'
+    scrape_interval: 10s
+    basic_auth:
+      username: admin
+      password: {{hostvars[groups['instance-openshift_master'][0]]['openshift_router_password_public']}} 
+    relabel_configs:
+    - replacement: "public"
+      target_label: "route_group"
+    file_sd_configs:
+      - files:
+        - targets/oc_route_public.json
+
+  - job_name: 'haproxy_exporter_partner'
+    scrape_interval: 10s
+    basic_auth:
+      username: admin
+      password: {{hostvars[groups['instance-openshift_master'][0]]['openshift_router_password_partner']}}
+      
+    relabel_configs:
+    - replacement: "partner"
+      target_label: "route_group"
+    file_sd_configs:
+      - files:
+        - targets/oc_route_partner.json
+
+  - job_name: 'haproxy_exporter_private'
+    scrape_interval: 10s
+    basic_auth:
+      username: admin
+      password: {{hostvars[groups['instance-openshift_master'][0]]['openshift_router_password_private']}}
+      
+    relabel_configs:
+    - replacement: "private"
+      target_label: "route_group"
+    file_sd_configs:
+      - files:
+        - targets/oc_route_private.json
+
+  - job_name: 'haproxy_exporter_general'
+    scrape_interval: 10s
+    basic_auth:
+      username: admin
+      password: {{hostvars[groups['instance-openshift_master'][0]]['openshift_router_password_general']}}
+      
+    relabel_configs:
+    - replacement: "general"
+      target_label: "route_group"
+    file_sd_configs:
+      - files:
+        - targets/oc_route_general.json
+        
+        
+        
+{% if federate_mysql_dev is defined %}
+  - job_name: 'federate_mysql_dev'
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    honor_labels: true
+    metrics_path: '/prometheus/federate'
+    relabel_configs:
+    - replacement: "openshift"
+      target_label: "instance_group"
+    params:
+      'match[]':
+        - '{__name__=~".+"}'
+    static_configs:
+      - targets:
+        - '{{ federate_mysql_dev }}'
+        
+  - job_name: 'federate_mysql_qa'
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    honor_labels: true
+    metrics_path: '/prometheus/federate'
+    relabel_configs:
+    - replacement: "openshift"
+      target_label: "instance_group"
+    params:
+      'match[]':
+        - '{__name__=~".+"}'
+    static_configs:
+      - targets:
+        - '{{ federate_mysql_qa }}'
+        
+{% endif %}

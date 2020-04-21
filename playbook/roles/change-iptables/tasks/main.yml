@@ -1,0 +1,43 @@
+---
+- name: config iptables allow 9200
+  iptables:
+    action: insert
+    chain: INPUT
+    protocol: tcp
+    match: tcp
+    destination_port: 9200
+    jump: ACCEPT
+    comment: node_exporter 9200
+    state: present
+  register: iptables_reg
+  
+- name: absent /etc/sysconfig/iptables allow 9200
+  lineinfile:
+    path: /etc/sysconfig/iptables
+    state: absent
+    regexp: '^-A INPUT -p tcp -m state --state NEW -m tcp --dport 9200 -j ACCEPT'
+
+- name: config /etc/sysconfig/iptables allow 9200
+  lineinfile:
+    path: /etc/sysconfig/iptables
+    regexp: '^-A INPUT -p tcp -m state --state NEW -m tcp --dport 9200 -j ACCEPT'
+    insertafter: '^-A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT'
+    line: '-A INPUT -p tcp -m state --state NEW -m tcp --dport 9200 -j ACCEPT'
+    state: present
+    
+- name: absent /etc/sysconfig/iptables.save allow 9200
+  lineinfile:
+    path: /etc/sysconfig/iptables.save
+    state: absent
+    regexp: '^-A INPUT -p tcp -m state --state NEW -m tcp --dport 9200 -j ACCEPT'
+
+- name: config /etc/sysconfig/iptables.save allow 9200
+  lineinfile:
+    path: /etc/sysconfig/iptables.save
+    regexp: '^-A INPUT -p tcp -m state --state NEW -m tcp --dport 9200 -j ACCEPT'
+    insertafter: '^-A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT'
+    line: '-A INPUT -p tcp -m state --state NEW -m tcp --dport 9200 -j ACCEPT'
+    state: present
+
+#- name: debug
+#  debug: msg="{{iptables_reg}}"

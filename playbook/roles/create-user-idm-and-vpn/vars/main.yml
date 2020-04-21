@@ -1,0 +1,64 @@
+---
+
+ipa_env_endpoint: mp-idm01.ascendmoney.internal
+ipa_admin_username: "your-username"
+ipa_admin_password: "your-password"
+
+new_name: "Myname"
+new_lastname: "Mylastname"
+new_user: "myuser.las"
+new_pass: "mypassword"
+email: "test.ansibletower@ascendmoney.com"
+
+add2group: "myGroup"
+
+vpn_user_ip: "0.0.0.0"
+vpn_subnet: "255.255.252.0"
+
+addtype: "single" # single or multiple
+
+# user_list:
+#   - { name: "Myname", lastname: "Mylastname", user: "myuser.las", password: "mypassword", group: "myGroup", vpn_user_ip: "0.0.0.0", vpn_subnet: "255.255.252.0", email: "test.ansibletower@ascendmoney.com" }
+
+# user_list:
+#   - name: Myname
+#     lastname: Mylastname
+#     user: test.ansibletower
+#     password: pass99word
+#     group: _dev
+#     vpn_user_ip: 192.168.191.18
+#     vpn_subnet: 255.255.252.0
+#     email: test.ansibletower@ascendmoney.com
+#   - name: Myname
+#     lastname: Mylastname
+#     user: test.ansibletower2
+#     password: pass99word
+#     group: _dev
+#     vpn_user_ip: 192.168.191.19
+#     vpn_subnet: 255.255.252.0
+#     email: test.ansibletower2@ascendmoney.com
+#   - name: Myname
+#     lastname: Mylastname
+#     user: test.ansibletower3
+#     password: pass99word
+#     group: _dev
+#     vpn_user_ip: 192.168.191.20
+#     vpn_subnet: 255.255.252.0
+#     email: test.ansibletower3@ascendmoney.com
+
+sendmail: "no"
+
+# Non-Production
+mail_server: "10.161.199.11"
+mail_port: "25"
+mail_environment: "Non-Production"
+mail_from: "TMN_System <tmn_system@ascendcorp.com>"
+vpn_profile_url: "https://drive.google.com/file/d/1tWjsZixIcyI4D-AOLfxiybtRc5kaigIF/view?usp=sharing"
+idm_url: "https://mn-idm01.ascendmoney-dev.internal"
+# Production
+# mail_server: "10.161.198.11"
+# mail_port: "25"
+# mail_environment: "Production"
+# mail_from: "TMN_System <tmn_system@ascendcorp.com>"
+# vpn_profile_url: "https://drive.google.com/file/d/1BG_SSH-pFhKXzbnwyFQzcZlPP4Im6vJX/view?usp=sharing"
+# idm_url: "https://mp-idm01.ascendmoney.internal"

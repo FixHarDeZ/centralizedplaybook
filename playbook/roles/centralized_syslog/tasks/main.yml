@@ -1,0 +1,19 @@
+---
+
+- name: Remove old conf in conf file change to .d folder
+  lineinfile:
+    path: /etc/rsyslog.conf
+    regexp: ".*@graylog.*"
+    state: absent
+
+- name: Place rsyslog config
+  template:
+    dest: /etc/rsyslog.d/graylog.conf
+    src: graylog.conf.j2
+    mode: 0644
+
+- name: Restart rsyslogd
+  service:
+    name: rsyslog
+    state: restarted
+

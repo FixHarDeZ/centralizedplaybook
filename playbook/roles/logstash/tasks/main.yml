@@ -1,0 +1,46 @@
+---
+- name: Install logstash
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - "{{ java_package }}"
+    - logstash-6.3.0-1
+
+- name: Configure logstash
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/logstash/{{ item }}"
+    mode: 0644
+  with_items:
+    - jvm.options
+    - logstash.yml
+
+- name: Create pattern directory
+  file:
+    path: /etc/logstash/patterns  
+    state: directory
+    mode: 0755
+
+- name: Place pattern files
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/logstash/patterns/{{ item }}"
+    mode: 0644
+  with_items:
+    - acnlogpatterns
+    - nano-nginx
+
+- name: Place pipeline files
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/logstash/conf.d/{{ item }}"
+    mode: 0644
+  with_items:
+    - acn-applog-pipeline.conf
+
+- name: Start logstash
+  systemd:
+    name: logstash
+    state: restarted
+    enabled: yes

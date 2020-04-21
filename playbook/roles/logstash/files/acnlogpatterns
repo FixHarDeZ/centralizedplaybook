@@ -1,0 +1,7 @@
+OBSOLETED_ACNDEFAULTAPPLOGPATTERN ^(?<TimeStamp>[^|]+)\|(?<Log_Version>\d+)\|(?<Log_Level>[^|]+)\|(?<Module>[^|]+)\|\[(?<Trace_ID>[^,]+),(?<Span_ID>[^,]+),(?<Exportable>[^\]]+)\]\|(?<PID>[^|]+)\|(?<Thread_ID>[^|]+)\|(?<Class>[^|]*)\|(?<Log_Message>.*)$
+
+ACNDEFAULTAPPLOGPATTERN   ^(?<TimeStamp>[^|]+)\|(?<Log_Version>\d+)\|(?<Log_Level>[^|]*)\|(?<Module>[^|]+)\|(?<Trace_ID>[^,]*),(?<Span_ID>[^,]*),(?<Exportable>[^,]*),(?<CORRELATION_ID>[^|]*)\|(?<PID>[^|]*)\|(?<Thread_ID>[^|]*)\|(?<Class>[^|]*)\|(\[(?<END_POINT>[^,]*),(?<CUSTOM_ATTRIBUTES>[^\]]*)\]\||)(?<REST>.*)$
+
+ACNAPPLOGEIGHTCOLUMNv1 ^(?<TimeStamp>[^ ]+\s*[^ ]+)\s*\|\s*(?<Log_Level>[^ ]+)\s*\|\s*(?<BU>[^ ]+)\s*\|\s*(?<Log_Type>[^ ]+)\s*\|\s*(?<Module>[^ ]+)\s*\|\s*(?<TransactionID>[^ ]+)\s*\|\s*(?<Client_IP>[^\|\s][^\|]*+)\s*\|\s*(?<Language>[^ ]+)\s*\|\s*(?<Log_Message>.*)$
+
+ACNAPPTIMESTAMP %{MONTHDAY}\/%{MONTHNUM}\/%{YEAR}[T ]%{HOUR}:?%{MINUTE}(?::?%{SECOND})?%{ISO8601_TIMEZONE}?

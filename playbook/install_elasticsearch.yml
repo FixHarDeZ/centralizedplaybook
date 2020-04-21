@@ -1,0 +1,32 @@
+---
+
+- name: Install idm client
+  hosts: all
+  become: yes
+  become_user: root
+  roles:
+    - resolv
+    - katello-agent
+    - idm_client
+
+- name: Install elasticsearch
+  hosts: elasticsearch
+  become: yes
+  become_user: root
+  roles:
+    - create-vg
+    - elasticsearch
+
+- name: Install kibana
+  hosts: kibana
+  become: yes
+  become_user: root
+  roles:
+    - kibana
+
+- name: Install logstash
+  hosts: logstash
+  become: yes
+  become_user: root
+  roles:
+    - logstash

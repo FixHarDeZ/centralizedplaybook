@@ -1,0 +1,29 @@
+---
+- name: CHECK PROMETHEUS SETUP STATE
+  shell: oc get pod -n monitoring
+  register: result2
+
+- name: 'CLONE DEPLOYMENT FILE '
+  template:
+    src: 'files/{{item.value.fname}}'
+    dest: '/tmp/{{item.value.fname}}'
+  with_dict: "{{ vars.vars.prometheus_setup }}"
+  when: result.stdout == ""
+
+- name: 'OC DEPLOYMENT POD'
+  command: oc create -f  /tmp/{{item.value.fname}}
+  register: add_node_result
+  ignore_errors: true
+  with_dict: "{{ vars.vars.prometheus_setup }}"
+  when: result.stdout == ""
+
+- name: 'DELETE DEPLOYMENT FILE'
+  file:
+    dest: "/tmp/{{item.value.fname}}"
+    state: absent
+  with_dict: "{{ vars.vars.prometheus_setup }}"
+
+
+
+
+#- debug: var=vars.vars.prometheus_setup

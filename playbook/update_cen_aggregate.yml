@@ -1,0 +1,9 @@
+### SET PROMETHEUS SYSTEM AGGREGATE
+- hosts: instance-prometheus_cen_aggregate
+  become: yes
+  become_user: root
+  vars:
+    homedir: /etc/prometheus
+    prometheus_type: "cen_aggregate"
+  roles:
+  - { role: openshift_monitoring/prometheus-service, action: 'cen_aggregate' }

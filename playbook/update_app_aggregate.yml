@@ -1,0 +1,10 @@
+# setup instance prometheus application aggregate
+
+- hosts: instance-prometheus_app_aggregate
+  become: yes
+  become_user: root
+  vars:
+    homedir: /etc/prometheus
+    prometheus_job: "app_aggregate"
+  roles:
+    - { role: openshift_monitoring/prometheus-service , action: 'app_aggregate' }

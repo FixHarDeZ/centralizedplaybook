@@ -1,0 +1,92 @@
+---
+data:
+- ns: common-cicd-platform
+  nfs:
+    pv_name: pv-console-workspace
+    pvc_name: pvc-console-workspace
+    path_name: /console_workspace
+    size: 20Gi
+- ns: common-cicd-platform
+  nfs:
+    pv_name: pv-vault-data
+    pvc_name: pvc-vault-data
+    path_name: /vault
+    size: 10Gi
+- ns: nano-cicd
+  nfs:
+    pv_name: pv-maven-repo-nano
+    pvc_name: jenkins-mvn-local-repo
+    path_name: /maven_repo_nano
+    size: 50Gi
+- ns: nano-cicd
+  nfs:
+    pv_name: pv-configuration-data-nano
+    pvc_name: pvc-configuration-data
+    path_name: /configuration_nano
+    size: 100Gi
+- ns: nano-cicd
+  nfs:
+    pv_name: pv-jenkins-home-nano
+    pvc_name: pvc-jenkins-home
+    path_name: /jenkins_home_nano
+    size: 30Gi
+- ns: nano-cicd
+  nfs:
+    pv_name: pv-jenkins-job-nano
+    pvc_name: pvc-jenkins-job
+    path_name: /jenkins_jobs_nano
+    size: 50Gi
+- ns: nano-cicd
+  nfs:
+    pv_name: pv-jenkins-jobs-nano
+    pvc_name: pvc-jenkins-jobs
+    path_name: /jenkins_jobs_nano
+    size: 50Gi
+- ns: nano-cicd
+  nfs:
+    pv_name: pv-jenkins-workspace-nano
+    pvc_name: pvc-jenkins-workspace
+    path_name: /jenkins_workspace_nano
+    size: 100Gi
+- ns: nano-creditpay-production
+  nfs:
+    pv_name: nano-reconcile-vol01-production-pv
+    pvc_name: nano-reconcile-vol01-production-pvc
+    path_name: /nano_reconcile-vol01_production
+    size: 1Gi
+- ns: truemoney-cicd
+  nfs:
+    pv_name: pv-maven-repo-truemoney
+    pvc_name: jenkins-mvn-local-repo
+    path_name: /maven_repo_truemoney
+    size: 50Gi
+- ns: truemoney-cicd
+  nfs:
+    pv_name: pv-configuration-data-truemoney
+    pvc_name: pvc-configuration-data
+    path_name: /configuration_truemoney
+    size: 50Gi
+- ns: truemoney-cicd
+  nfs:
+    pv_name: pv-jenkins-home-truemoney
+    pvc_name: pvc-jenkins-home
+    path_name: /jenkins_home_truemoney
+    size: 30Gi
+- ns: truemoney-cicd
+  nfs:
+    pv_name: pv-jenkins-job-truemoney
+    pvc_name: pvc-jenkins-job
+    path_name: /jenkins_jobs_truemoney
+    size: 50Gi
+- ns: truemoney-cicd
+  nfs:
+    pv_name: pv-jenkins-workspace-truemoney
+    pvc_name: pvc-jenkins-workspace
+    path_name: /jenkins_workspace_truemoney
+    size: 100Gi
+- ns: nano-creditpay-production
+  nfs:
+    pv_name: nano-truedevice-reconcile-vol01-production-pv
+    pvc_name: nano-truedevice-reconcile-vol01-production-pvc
+    path_name: /nano-truedevice-reconcile-production
+    size: 1Gi

@@ -1,0 +1,6 @@
+- name: create_sysansible
+  hosts: all
+  become: yes
+  become_user: root
+  roles:
+    - create_sysansible

@@ -1,0 +1,20 @@
+---
+
+- name: Add redis node
+  hosts: redis-node
+  become: yes
+  become_user: root
+  roles:
+    - { role: add-redis-node, tags: ["redis-node"] }
+  vars:
+    redis_type: "node"
+
+- name: Config new redis node on sentinel
+  hosts: redis-sentinel
+  serial: 1
+  become: yes
+  become_user: root
+  roles:
+    - { role: add-redis-node, tags: ["redis-sentinel"] }
+  vars:
+    redis_type: "sentinel"

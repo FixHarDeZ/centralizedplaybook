@@ -1,0 +1,10 @@
+---
+# setup instance grafana
+
+- hosts: instance-grafana
+  become: yes
+  become_user: root
+  vars:
+    yum_rmp: https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana-5.0.4-1.x86_64.rpm
+  roles:
+    - { role: openshift_monitoring/grafana }

@@ -1,0 +1,11 @@
+---    
+- name: yum install elasticsearch_exporter
+  yum:
+    name: elasticsearch_exporter
+    state: present
+    
+- name: enable elasticsearch_exporter
+  systemd:
+    name: elasticsearch_exporter
+    state: started
+    enabled: true

@@ -1,0 +1,116 @@
+---
+  - name: Ensure Package lvm2
+    yum: name=lvm2 state=present
+
+  - name: Ensure Package nfs-utils
+    yum: name=nfs-utils state=present
+    
+  - name: replace ignore rpcbind
+    replace:
+      path: /lib/systemd/system/rpcbind.socket
+      regexp: "^({{item.value}})$"
+      replace: '#\1'
+    with_dict: "{{ targets }}"
+    register: result_replace
+    
+  - name: Enable nfs service
+    systemd:
+      name: nfs
+      daemon_reload: yes
+      enabled: yes
+
+  - name: Setup Disk Partition
+    parted:
+      device: "{{disk_name}}"
+      number: 1
+      state: present
+
+  - name: pvcreate
+    lvg:
+      vg: "{{vg_name}}"
+      pvs: "{{disk_name}}1"
+    ignore_errors: True
+    
+
+  - name: growpart
+    raw: growpart "{{disk_name}}" 1
+    ignore_errors: True
+    
+  - name: pvresize
+    raw: pvresize "{{disk_name}}"1
+    ignore_errors: True
+  
+  - name: lvcreate
+    lvol:
+      vg: "{{vg_name}}"
+      lv: "{{item.key}}"
+      size: "{{item.value.size}}"
+    with_dict: "{{ mountpoints }}"
+
+  - name: create file system
+    filesystem:
+      fstype: ext4
+      dev: "/dev/mapper/{{ vg_name }}-{{ item.key }}"
+    with_dict: "{{ mountpoints }}"
+
+  - name: Setup Directory For Mountpoint
+    file:
+      path: "{{item.value.path}}"
+      state: directory
+      mode: 0755
+    with_dict: "{{ mountpoints }}"
+
+  - name: Mount Logical Volume
+    mount:
+      path: "{{item.value.path}}"
+      src: "/dev/mapper/{{vg_name}}-{{item.key}}"
+      fstype: ext4
+      opts: defaults
+      state: mounted
+    with_dict: "{{ mountpoints }}"
+    
+  - name: Edit user Centos gid
+    raw: groupmod -g 9000 centos
+    
+  - name: Edit user Centos uid
+    raw: usermod -u 9000 centos
+    
+  - name: Add Group Jenkins
+    group:
+      gid: 1000
+      name: "jenkins"
+      state: present
+      
+  - name: Add user Jenkins 
+    user:
+      name: "jenkins"
+      uid: 1000
+      group: 1000
+      home: "/var/jenkins_home"
+      shell: "/bin//bash"
+      
+  - name: Edit jenkins_home
+    file:
+      path: "/var/jenkins_home/"
+      owner: "jenkins"
+      group: "jenkins"
+      mode: 0777
+      
+  - name: Add nfsnobody to file
+    file:
+      path: "{{ item }}"
+      owner: "nfsnobody"
+      group: "nfsnobody"
+      mode: 0777
+    with_items: "{{ groupdir }}"
+      
+  - name: File /etc/exports
+    copy:
+      dest: /etc/exports
+      content: "{{ contentdir }}"
+      
+  - name: exportfs reload
+    raw: exportfs -a
+           
+
+        

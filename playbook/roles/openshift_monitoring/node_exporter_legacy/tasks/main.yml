@@ -1,0 +1,98 @@
+---
+#- name: add repo prometheus
+#  yum_repository:
+#    name: prometheus
+#    description: prometheus
+#    file: prometheus
+#    baseurl: https://packagecloud.io/prometheus-rpm/release/el/7/$basearch
+#    gpgkey: https://packagecloud.io/prometheus-rpm/release/gpgkey  https://raw.githubusercontent.com/lest/prometheus-rpm/master/RPM-GPG-KEY-prometheus-rpm
+#    gpgcheck: yes
+
+#- name: yum install node_exporter
+#  yum:
+#    name: node_exporter
+#    state: present
+    
+#- name: copy file package node_exporter
+#  copy:
+#    src: node_exporter-0.16.0-3.el7.centos.x86_64.rpm
+#    dest: /tmp/node_exporter-0.16.0-3.el7.centos.x86_64.rpm
+#- debug: var=ansible_lsb.major_release|int
+
+#- debug: var=ansible_distribution_version|int
+#- debug:  var=ansible_distribution_major_version
+
+- name: run rpm centos6
+  yum:
+    name: node_exporter-0.16.0-3.el6
+    state: present
+  when: ansible_distribution_major_version|int == 6
+    
+- name: run rpm centos7
+  yum:
+    name: node_exporter-0.16.0-3.el7.centos
+    state: present
+  when: ansible_distribution_major_version|int == 7
+
+- name: node_exporter listen-address centos6
+  copy:
+    content: "EXPORTER_ARGS='--web.listen-address=\":9200\"'"
+    dest: /etc/default/node_exporter
+  when: ansible_distribution_major_version|int == 6
+  
+- name: node_exporter listen-address centos7
+  copy:
+    content: "NODE_EXPORTER_OPTS='--web.listen-address=\":9200\"'"
+    dest: /etc/default/node_exporter
+  when: ansible_distribution_major_version|int == 7
+  
+- name: node_exporter USER
+  lineinfile:
+    path: /etc/init.d/node_exporter
+    regexp: "^ENVFILE="
+    line: 'ENVFILE="/etc/default/${NAME}"
+    USER="root"'
+  when: ansible_distribution_major_version|int == 6
+  
+- name: node_exporter systemd status
+  lineinfile:
+    path: /usr/lib/systemd/system/node_exporter.service
+    regexp: "^User="
+    line: 'User=root'
+  when: ansible_distribution_major_version|int == 7
+    
+- name: mode node_exporter
+  file:
+    path: /etc/init.d/node_exporter
+    owner: root
+    group: root
+    mode: "u=rwx,g=rx,o=rx"
+  when: ansible_distribution_major_version|int == 6
+    
+- name: check service node_exporter centos6
+  #command: /etc/init.d/node_exporter start
+  #become: true
+  service:  
+    name: node_exporter 
+    state: restarted 
+  when: ansible_distribution_major_version|int == 6
+  #  enabled: yes
+  #register: service_result
+  
+#- debug: var=service_result
+
+- name: check service node_exporter centos7
+  service:  name=node_exporter state=restarted enabled=yes
+  when: ansible_distribution_major_version|int == 7
+
+#- name: config iptables allow 9200
+#  iptables:
+#    action: insert
+#    chain: INPUT
+#    protocol: tcp
+#    match: tcp
+#    destination_port: 9200
+#    jump: ACCEPT
+#    comment: node_exporter 9200
+#    state: present
+#  register: iptables_reg

@@ -1,0 +1,44 @@
+---
+- name: copy file shell script to ansible
+  delegate_to: "{{ ansible_tower }}"
+  become: false
+  copy:
+    src: "{{ country_env }}/gitrules_nano.sh"
+    dest: /home/sysansible/prometheus/gitrules_nano.sh
+    mode: u=rwx,g=rwx,o=r
+    
+- name: shell script git pull and scp
+  delegate_to: "{{ ansible_tower }}"
+  become: false
+  shell: /home/sysansible/prometheus/gitrules_nano.sh
+  
+- name: chmod sysansible/rules
+  file: 
+    path: /home/sysansible/rules
+    mode: 0777
+    
+- name: delete /etc/prometheus/rules
+  file: 
+    path: /etc/prometheus/rules
+    state: absent
+  
+- name: coppy rules
+  command: cp -r /home/sysansible/rules /etc/prometheus/
+  
+- name: chmod prometheus/rules
+  file: 
+    path: /etc/prometheus/rules
+    owner: prometheus
+    group: prometheus
+    mode: 0750
+    recurse: yes
+    
+- name: reload prometheus
+  uri:
+    url: http://localhost:9090/-/reload
+    method: POST
+      
+- name: delete sysansible/rules
+  file: 
+    path: /home/sysansible/rules
+    state: absent

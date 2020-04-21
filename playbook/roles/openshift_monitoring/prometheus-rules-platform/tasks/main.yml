@@ -1,0 +1,14 @@
+---  
+- name: shell script git pull
+#  delegate_to: "{{ ansible_tower }}"
+  become: false
+  shell: "/home/sysansible/prometheus/repo/acm-ocp-prometheus-rules-infra/jobs/prometheus-rules-update.sh generate {{env_name}} /home/sysansible/prometheus/repo/acm-ocp-prometheus-rules-infra /tmp/acm-ocp-prometheus-rules-infra"
+  register: promrules_generate_result
+
+- name: scp to target server
+  become: false
+  shell: "/home/sysansible/prometheus/repo/acm-ocp-prometheus-rules-infra/jobs/prometheus-rules-update.sh deploy /tmp/acm-ocp-prometheus-rules-infra {{target_hosts}} sysansible /home/sysansible/.ssh/id_rsa /etc/prometheus/rules/infra"
+  register: promrules_sync_result  
+
+- debug: var=promrules_generate_result.stdout_lines
+- debug: var=promrules_sync_result.stdout_lines

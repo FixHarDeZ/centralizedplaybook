@@ -1,0 +1,17 @@
+- name: 'READ TEMP PASSWD'
+  local_action: 
+    module: command cat "{{inventory_dir}}/{{vars.vars.passwd_path}}"
+  register: result
+
+- name: 'SET VAR OPENSHIFT_ROUTER_PASSWD'
+  set_fact:
+    openshift_router_passwd: "{{result.stdout}}"
+
+
+- name: 'REMOVE ROUTER PASSWD'
+  local_action:
+    module: file
+    dest: "{{inventory_dir}}/{{vars.vars.passwd_path}}"
+    state: absent
+
+#- debug: msg=openshift_router_passwd

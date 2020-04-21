@@ -1,0 +1,65 @@
+---
+#- name: add repo prometheus
+#  yum_repository:
+#    name: prometheus
+#    description: prometheus
+#    file: prometheus
+#    baseurl: https://packagecloud.io/prometheus-rpm/release/el/7/$basearch
+#    gpgkey: https://packagecloud.io/prometheus-rpm/release/gpgkey  https://raw.githubusercontent.com/lest/prometheus-rpm/master/RPM-GPG-KEY-prometheus-rpm
+#    gpgcheck: yes
+    
+#- name: yum install alertmanager
+#  yum:
+#    name: alertmanager
+#    state: present
+
+- name: copy file package alertmanager
+  copy:
+    src: alertmanager-0.14.0-1.el7.centos.x86_64.rpm
+    dest: /tmp/alertmanager-0.14.0-1.el7.centos.x86_64.rpm
+  when: action == "install"
+    
+- name: run rpm
+  yum:
+    name: /tmp/alertmanager-0.14.0-1.el7.centos.x86_64.rpm
+    state: present
+  when: action == "install"
+    
+- name: 'Alertmanager Template Config nonprod'
+  template:
+    src: "alertmanager-nonprod.j2"
+    dest: "/etc/prometheus/alertmanager.yml"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+  when: env == "nonprod"
+    
+- name: 'Alertmanager Template Config prod'
+  template:
+    src: "alertmanager-prod.j2"
+    dest: "/etc/prometheus/alertmanager.yml"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+  when: env == "prod"
+
+- name: 'Alertmanager Template Email'
+  copy:
+    src: "email.html"
+    dest: "/etc/prometheus/email.html"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+    
+- name: started alertmanager
+  systemd:
+    name: alertmanager
+    state: started
+    enabled: True
+  when: action == "install"
+    
+- name: update alertmanager
+  systemd:
+    name: alertmanager
+    state: restarted
+  when: action == "update"

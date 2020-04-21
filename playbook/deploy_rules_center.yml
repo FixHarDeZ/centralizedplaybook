@@ -1,0 +1,7 @@
+---
+# setup instance Alertmanager
+- hosts: instance-prometheus_cen_aggregate
+  become: yes
+  become_user: root
+  roles:
+    - { role: openshift_monitoring/deplay_rules_center}

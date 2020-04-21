@@ -1,0 +1,7 @@
+---
+
+- name: Install redis from repo
+  package:
+    name: redis
+    state: present
+

@@ -1,0 +1,154 @@
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+       - '{{ alertmanager }}:9093'
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "./rules/*.yml"
+  
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node_exporter'  # This is a default value, it is mandatory.
+    scrape_interval: 30s
+    file_sd_configs:
+      - files:
+        - targets/node_exporter.json
+      
+  - job_name: 'websphere_exporter'  # This is a default value, it is mandatory.
+    scrape_interval: 15s
+    metrics_path: /metrics
+    file_sd_configs:
+      - files:
+        - targets/websphere_exporter.json
+        
+{% if env == 'production' %}
+  - job_name: 'wmi_exporter'
+    metrics_path: /metrics
+    scrape_interval: 30s
+    scrape_timeout: 30s
+    file_sd_configs:
+      - files:
+        - targets/windows_exporter.json
+        
+  - job_name: 'tmx-api-auth'
+    scrape_interval: 50s
+    metrics_path: /tmx-auth/metrics
+    relabel_configs:
+    - source_labels: [__address__]
+      regex: "10.12.42.50:8080"
+      replacement: "ttrp-ttmb-apife01"
+      target_label: "instance_hostname"
+    - source_labels: [__address__]
+      regex: "10.12.42.51:8080"
+      replacement: "ttrp-ttmb-apife02"
+      target_label: "instance_hostname"
+    static_configs:
+      - targets:
+        - "10.12.42.50:8080"
+        - "10.12.42.51:8080"
+        
+  - job_name: 'tmx-api-common'
+    scrape_interval: 50s
+    metrics_path: /tmx-common/metrics
+    relabel_configs:
+    - source_labels: [__address__]
+      regex: "10.12.42.50:8081"
+      replacement: "ttrp-ttmb-apife01"
+      target_label: "instance_hostname"
+    - source_labels: [__address__]
+      regex: "10.12.42.51:8081"
+      replacement: "ttrp-ttmb-apife02"
+      target_label: "instance_hostname"
+    static_configs:
+      - targets:
+        - "10.12.42.50:8081"
+        - "10.12.42.51:8081"
+        
+  - job_name: 'tmx-api-topup'
+    scrape_interval: 50s
+    metrics_path: /tmx-topup/metrics
+    relabel_configs:
+    - source_labels: [__address__]
+      regex: "10.12.42.50:8082"
+      replacement: "ttrp-ttmb-apife01"
+      target_label: "instance_hostname"
+    - source_labels: [__address__]
+      regex: "10.12.42.51:8082"
+      replacement: "ttrp-ttmb-apife02"
+      target_label: "instance_hostname"
+    static_configs:
+      - targets:
+        - "10.12.42.50:8082"
+        - "10.12.42.51:8082"
+
+  - job_name: 'tmx-api-billpay'
+    scrape_interval: 50s
+    metrics_path: /tmx-billpay/metrics
+    relabel_configs:
+    - source_labels: [__address__]
+      regex: "10.12.42.50:8083"
+      replacement: "ttrp-ttmb-apife01"
+      target_label: "instance_hostname"
+    - source_labels: [__address__]
+      regex: "10.12.42.51:8083"
+      replacement: "ttrp-ttmb-apife02"
+      target_label: "instance_hostname"
+    static_configs:
+      - targets:
+        - "10.12.42.50:8083"
+        - "10.12.42.51:8083"
+
+  - job_name: 'tmx-api-irs'
+    scrape_interval: 50s
+    metrics_path: /tmx-irs/metrics
+    relabel_configs:
+    - source_labels: [__address__]
+      regex: "10.12.42.50:8084"
+      replacement: "ttrp-ttmb-apife01"
+      target_label: "instance_hostname"
+    - source_labels: [__address__]
+      regex: "10.12.42.51:8084"
+      replacement: "ttrp-ttmb-apife02"
+      target_label: "instance_hostname"
+    static_configs:
+      - targets:
+        - "10.12.42.50:8084"
+        - "10.12.42.51:8084"
+
+  - job_name: 'tmx-api-bci'
+    scrape_interval: 50s
+    metrics_path: /tmx-bci/metrics
+    relabel_configs:
+    - source_labels: [__address__]
+      regex: "10.12.42.50:8085"
+      replacement: "ttrp-ttmb-apife01"
+      target_label: "instance_hostname"
+    - source_labels: [__address__]
+      regex: "10.12.42.51:8085"
+      replacement: "ttrp-ttmb-apife02"
+      target_label: "instance_hostname"
+    static_configs:   
+      - targets:
+        - "10.12.42.50:8085"
+        - "10.12.42.51:8085"
+{% endif %}

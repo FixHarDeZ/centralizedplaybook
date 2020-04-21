@@ -1,0 +1,7 @@
+---
+
+my_gluster_list:
+  - "mn-gluster01.ascendmoney-dev.internal"
+  - "mn-gluster02.ascendmoney-dev.internal"
+  - "mn-gluster03.ascendmoney-dev.internal"
+  - "mn-gluster04.ascendmoney-dev.internal"

@@ -1,0 +1,8 @@
+- hosts: '{{hosts}}'
+  become: yes
+  become_user: root
+  vars:
+    homedir: /etc/prometheus
+
+  roles:
+    - { role: "openshift_monitoring/promrule-infra"}

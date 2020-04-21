@@ -1,0 +1,17 @@
+---
+- hosts: 10.12.25.1
+  become: yes
+  become_user: root
+  tasks:
+  vars:
+
+- name: Publish Content View new version
+  roles:
+  - { role: satellite, tags: ["publish_cv"] }
+  - { role: satellite, tags: ["cleanup_cv"] }
+
+- name: Promote non-prod Content View
+  - { role: satellite, tags: ["update_nprod_cv"] }
+
+- name: Promote prod Content View
+  - { role: satellite, tags: ["update_prod_cv"] }

@@ -1,0 +1,15 @@
+---
+
+my_sentinel_port: 26379
+my_sentinel_ip:
+  - 10.12.24.141
+  - 10.12.24.142
+  - 10.12.24.143
+
+my_redis_port: 6379
+my_redis_master_ip: 10.12.24.144
+my_redis_node_ip:
+  - 10.12.24.144
+  - 10.12.24.145
+  - 10.12.24.146
+

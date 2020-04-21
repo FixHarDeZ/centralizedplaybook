@@ -1,0 +1,9 @@
+---
+
+- name: Configure syslog centralization
+  hosts: non-prod
+  become: yes
+  become_user: root
+  gather_facts: no
+  roles:
+    - centralized_syslog

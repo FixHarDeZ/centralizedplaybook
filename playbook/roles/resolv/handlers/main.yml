@@ -1,0 +1,12 @@
+---
+- name: restart_network
+  service:
+    name: network
+    state: restarted
+
+- name: restart_dnsmasq
+  service:
+    name: dnsmasq.service
+    state: restarted
+  ignore_errors: yes
+    

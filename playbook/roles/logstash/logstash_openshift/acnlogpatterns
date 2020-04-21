@@ -1,0 +1,3 @@
+ACNDEFAULTAPPLOGPATTERN ^(?<time>[^ ]+\s*[^ ]+)\s*\|\s*(?<log_level>[^ ]+)\s*\|\s*(?<BU>[^ ]+)\s*\|\s*(?<log_type>[^ ]+)\s*\|\s*(?<service>[^ ]+) .+\|\s*(?<log_detail>.*)$
+
+ACNAPPTIMESTAMP %{MONTHDAY}\/%{MONTHNUM}\/%{YEAR}[T ]%{HOUR}:?%{MINUTE}(?::?%{SECOND})?%{ISO8601_TIMEZONE}?

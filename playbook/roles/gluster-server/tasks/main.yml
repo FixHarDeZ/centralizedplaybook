@@ -1,0 +1,100 @@
+---
+
+# - name: Checking connection
+  
+- name: Create PV
+  parted:
+    device: /dev/sdb
+    number: 1
+    flags: [ lvm ]
+    state: present
+
+- name: Create VG gluster
+  lvg:
+    vg: vg_gluster
+    pvs: /dev/sdb1
+    
+- name: Create LV gluster
+  lvol:
+    vg: vg_gluster
+    lv: lv_brick1
+    size: +100%FREE
+    resizefs: yes
+
+- name: Create a xfs filesystem on /dev/mapper/vg_gluster-lv_brick1
+  filesystem:
+    fstype: xfs
+    dev: /dev/mapper/vg_gluster-lv_brick1
+
+- name: Create dir brick1
+  file:
+    path: /bricks/brick1
+    state: directory
+    mode: 0700
+    owner: root
+    group: root
+
+- name: Mount up device by lvm
+  mount:
+    path: /bricks/brick1
+    src: /dev/mapper/vg_gluster-lv_brick1
+    fstype: xfs
+    state: present
+
+- name: Install glusterfs-server
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - samba
+    - glusterfs-server
+
+- name: start gluster
+  systemd:
+    name: glusterd.service
+    state: started
+    enabled: true
+
+- name: Peering gluster
+  gluster_peer:
+    state: present
+    nodes: "{{my_gluster_list}}"
+  run_once: true
+  tags:
+    - test-peer
+
+- name: Create dir gluster_volume_default
+  file:
+    path: /bricks/brick1/gluster_volume_default
+    state: directory
+    mode: 0700
+    owner: root
+    group: root
+  tags:
+    - test
+
+- name: Create gluster volume
+  gluster_volume:
+    name: gluster_volume_default
+    bricks: /bricks/brick1/gluster_volume_default
+    cluster: "{{my_gluster_list}}"
+    stripes: 4
+    # replicas: 2
+    state: present
+    # state: absent
+    # directory: /
+    # quota: 200.0MB
+    options:
+        cluster.stripe-block-size: 100MB
+  run_once: true
+  tags:
+    - test
+
+- name: remove gluster volume
+  file:
+    path: "/bricks/brick1/{{item}}"
+    state: absent
+  with_items:
+    - gluster_volume_default
+  tags:
+    - delete-dir

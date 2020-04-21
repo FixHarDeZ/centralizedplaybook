@@ -1,0 +1,19 @@
+---
+
+- name: Install elasticsearch and its dependencies
+  yum:
+    name: "{{ item }}"
+  with_items:
+    - kibana
+
+- name: Configure kibana
+  template:
+    src: kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+#
+#
+- name: Start kibana
+  systemd:
+    name: kibana
+    state: restarted
+    enabled: yes

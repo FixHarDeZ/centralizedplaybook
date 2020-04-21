@@ -1,0 +1,12 @@
+---
+
+- name: Ensure prerequsite met 
+  hosts: all
+  vars_prompt:
+    name: ipa_admin_password
+    prompt: "ipa admin user's password"
+    private: yes
+  roles:
+    # - resolv
+    # - katello-agent
+    - idm-client

@@ -1,0 +1,25 @@
+- name: 'copy file websphere'
+  copy: 
+    src: "files/{{ item.name }}" 
+    dest: "{{ item.path }}"
+    mode: 0644
+  with_items:
+    - { name: 'etc-default-websphere_exporter', path: '/etc/default/websphere_exporter' }
+    - { name: 'etc-websphere_exporter.json', path: '/etc/websphere_exporter.json' }
+    
+- name: 'copy file websphere +x'
+  copy: 
+    src: "files/{{ item.name }}" 
+    dest: "{{ item.path }}"
+    mode: "u=rwx,g=rx,o=rx"
+  with_items:
+    - { name: 'etc-init.d-websphere_exporter', path: '/etc/init.d/websphere_exporter' }
+    - { name: 'sre_websphere_exporter', path: '/usr/bin/websphere_exporter' }
+    
+- name: 'sed file'
+  command: "sed -i -e 's/\r//g' /etc/init.d/websphere_exporter"
+    
+- name: check service websphere_exporter
+  service:  
+    name: websphere_exporter 
+    state: restarted

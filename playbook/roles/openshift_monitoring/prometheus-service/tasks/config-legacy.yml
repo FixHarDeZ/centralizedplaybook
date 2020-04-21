@@ -1,0 +1,106 @@
+---
+- name: 'REMOVE HOMEDIR'
+  file:
+    dest: "{{vars.homedir}}"
+    state: absent
+
+#- name: 'CRATE HOMEDIR RULES'
+#  file:
+#    path: "{{vars.homedir}}/rules"
+#    state: directory
+#    owner: prometheus
+#    group: prometheus
+
+- name: 'CRATE HOMEDIR TARGETS'
+  file:
+    path: "{{vars.homedir}}/targets"
+    state: directory
+    owner: prometheus
+    group: prometheus
+    
+- name: 'DEPLOY PROMETHEUS RULES'
+  copy: 
+    src: "files/legacy/rules" 
+    dest: "{{homedir}}/"
+    owner: prometheus
+    group: prometheus
+    mode: 0755
+    
+- name: 'DEPLOY PROMETHEUS RULES PRODUCTION'
+  copy: 
+    src: "files/legacy/production/windows_alert.yml" 
+    dest: "{{homedir}}/rules/windows_alert.yml"
+    owner: prometheus
+    group: prometheus
+    mode: 0755
+  when: env == "production"
+
+- name: 'DEPLOY PROMETHEUS CONFIG'
+  template:
+    src: "legacy/prometheus.j2"
+    dest: "{{vars.homedir}}/prometheus.yml"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+
+
+- name: 'DEPLOY PROMETHEUS OPTIONS'
+  copy: 
+    src: "files/legacy/prometheus.opt" 
+    dest: "/etc/default/prometheus"
+    owner: prometheus
+    group: prometheus
+    mode: 0755
+
+- name: 'INIT VAR ARRAY INSTANCE'
+  set_fact:
+    mycfg1: []
+    mycfg2: []
+    mywmi: []
+    
+- name: 'SET TARGET ARRAY FOR node_exporter'
+  set_fact:
+    mycfg1: '{{mycfg1}} + [ {"targets":["{{hostvars[item].inventory_hostname}}:{{hostvars[item].port_node}}"],"labels":{"instance_hostname":"{{hostvars[item].instance_hostname}}","instance_group":"{{hostvars[item].instance_group}}","centos":"{{hostvars[item].centos}}"}} ]'
+  with_items: "{{groups['promcfg-targets-node_exporter']}}" 
+  
+- name: 'SET TARGET ARRAY FOR websphere_exporter'
+  set_fact:
+    mycfg2: '{{mycfg2}} + [ {"targets":["{{hostvars[item].inventory_hostname}}:{{hostvars[item].port_websphere}}"],"labels":{"instance_hostname":"{{hostvars[item].instance_hostname}}","instance_group":"{{hostvars[item].instance_group}}"}} ]'
+  with_items: "{{groups['promcfg-targets-websphere_exporter']}}"
+  
+- name: 'SET TARGET ARRAY FOR windows_exporter'
+  set_fact:
+    mywmi: '{{mywmi}} + [ {"targets":["{{hostvars[item].inventory_hostname}}:{{hostvars[item].port_node}}"],"labels":{"instance_hostname":"{{hostvars[item].instance_hostname}}","instance_group":"{{hostvars[item].instance_group}}"}} ]'
+  with_items: "{{groups['promcfg-targets-windows_exporter']}}"
+  when: env == "production"
+  
+- name: 'DEPLOY PROMETHEUS TARGET FILE node_exporter'
+  copy: 
+    content: "{{ mycfg1 | to_json}}" 
+    dest: "{{vars.homedir}}/targets/node_exporter.json"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+    
+- name: 'DEPLOY PROMETHEUS TARGET FILE websphere_exporter'
+  copy: 
+    content: "{{ mycfg2 | to_json}}" 
+    dest: "{{vars.homedir}}/targets/websphere_exporter.json"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+    
+- name: 'DEPLOY PROMETHEUS TARGET FILE windows_exporter'
+  copy: 
+    content: "{{ mywmi | to_json}}" 
+    dest: "{{vars.homedir}}/targets/windows_exporter.json"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+
+- name: 'RESTART SERVICE PROMETHEUS'
+  #service:  name=prometheus state=reloaded
+  uri:
+    url: http://localhost:9090/-/reload
+    method: POST
+

@@ -1,0 +1,6 @@
+- name: create pv pvc
+  hosts: instance-openshift_master
+  become: yes
+  become_user: root
+  roles:
+    - { role: create_pv_pvc}

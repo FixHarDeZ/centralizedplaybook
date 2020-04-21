@@ -1,0 +1,22 @@
+---
+
+- name: install needed network manager libs
+  yum:
+    name: '{{ item }}'
+    state: installed
+  with_items:
+    - NetworkManager-glib
+    - libnm-qt-devel.x86_64
+    - nm-connection-editor.x86_64
+    - libsemanage-python
+    - policycoreutils-python
+
+- name: Configure search domain
+  nmcli:
+    conn_name: eth0
+    dns4:
+      - "{{ dns1}}"
+      - "{{ dns2 }}"
+    dns4_search: "{{ search_domain }}"
+    state: present
+

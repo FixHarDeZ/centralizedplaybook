@@ -1,0 +1,7 @@
+--- 
+# setup instance prometheus system aggregate
+- hosts: promcfg-targets-websphere_exporter
+  become: yes
+  become_user: root
+  roles:
+    - { role: openshift_monitoring/websphere_exporter }

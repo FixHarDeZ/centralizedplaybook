@@ -1,0 +1,43 @@
+---
+- name: copy file package node_exporter
+  copy:
+    src: node_exporter-0.16.0-3.el7.centos.x86_64.rpm
+    dest: /tmp/node_exporter-0.16.0-3.el7.centos.x86_64.rpm
+     
+- name: yum install node_exporter
+  yum:
+    name: /tmp/node_exporter-0.16.0-3.el7.centos.x86_64.rpm
+    state: present
+  
+- name: node_exporter systemd status
+  lineinfile:
+    path: /usr/lib/systemd/system/node_exporter.service
+    regexp: "^User="
+    line: 'User=root'
+    
+- name: node_exporter listen-address centos7
+  copy:
+    content: "NODE_EXPORTER_OPTS='--web.listen-address=\":9200\"'"
+    dest: /etc/default/node_exporter
+
+- name: check service node_exporter
+  service:  name=node_exporter state=started enabled=yes
+  register: service_result
+  
+- name: absent file rpm
+  file:
+    state: absent
+    path: /tmp/node_exporter-0.16.0-3.el7.centos.x86_64.rpm
+
+#- name: config iptables allow 9200
+#  iptables:
+#    action: insert
+#    chain: INPUT
+#    protocol: tcp
+#    match: tcp
+#    destination_port: 9200
+#    jump: ACCEPT
+#    comment: node_exporter 9200
+#    state: present
+#  register: iptables_reg
+    

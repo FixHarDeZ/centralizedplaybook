@@ -1,0 +1,65 @@
+---
+
+- name: Install prerequisite 
+  hosts: all
+  become: yes
+  become_user: root
+  roles:
+    - { role: create_sysansible, tags: ["create_sysansible"] }
+    - { role: chronyd,           tags: ["chronyd"] }
+    - { role: katello-agent,     tags: ["katello-agent"] }
+    - { role: idm-client,        tags: ["idm-client"] }
+    - { role: config-audit-log,  tags: ["config-audit-log"] }
+
+- name: Install resolv for OCP
+  hosts: openshift
+  become: yes
+  become_user: root
+  roles:
+    - { role: resolv, tags: ["resolv"] }
+  vars:
+    is_ocp: True
+
+- name: Install resolv for Non-OCP
+  hosts: all,!openshift
+  become: yes
+  become_user: root
+  roles:
+    - { role: resolv, tags: ["resolv"] }
+  vars:
+    is_ocp: False
+
+- name: Configure syslog centralization
+  hosts: all
+  become: yes
+  become_user: root
+  gather_facts: no
+  roles:
+    - { role: centralized_syslog, tags: ["resolv"] }
+
+
+# === vars ===
+# role: resolv
+#   dns1 (ip)
+#   dns2 (ip)
+#   search_domain (domain)
+#   search_domain2 (domain) for OCP
+#   is_ocp (yes or no)
+
+# role: chronyd
+#   ntp_sources (list)
+
+# role: katello-agent
+#   satellite_env_endpoint (url)
+#   satellite_env (text)
+#   satellite_org (text)
+#   satellite_key (text)
+
+# role: idm-client
+#   ipa_env_endpoint (url)
+#   search_domain (domain)
+#   ipa_admin_username (text)
+#   ipa_admin_password (text)
+#   changed_password_default_user (boolean)
+#   password_default_user (password)
+

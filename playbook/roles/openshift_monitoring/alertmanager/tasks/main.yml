@@ -1,0 +1,54 @@
+- name: Git pull 
+  delegate_to: localhost
+  shell: "cd {{repo_path}};git pull;"
+  register: gitpull_out
+
+- name: Set variable
+  delegate_to: localhost
+#  delegate_facts: yes
+  include_vars: "{{repo_path}}/src/{{env_name}}/var.yml"
+
+
+
+- name: 'Generate alertmanager template from target server'
+  template:
+    src: "{{repo_path}}/src/{{env_name}}/alertmanager.j2"
+    dest: "/etc/prometheus/alertmanager.yml"
+    owner: prometheus
+    group: prometheus
+#    mode: 0644
+  ignore_errors: yes
+  when: handler == "setup" or handler == "update"
+
+
+- name: started alertmanager
+  systemd:
+    name: alertmanager
+    state: started
+    enabled: True
+  ignore_errors: yes
+  when: handler == "setup"
+  register: state_out
+
+
+- name: reload alertmanager
+  uri:
+    url: http://localhost:9093/-/reload
+    method: POST
+    status_code: 200
+  register: state_out
+  ignore_errors: yes
+  when: handler == "update"
+
+
+- name: restart alertmanager
+  systemd:
+    name: alertmanager
+    state: restarted
+  when: handler == "restart"
+  register: state_out
+
+- debug: var=gitpull_out.stdout
+- debug: var=state_out
+
+

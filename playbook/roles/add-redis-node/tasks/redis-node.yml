@@ -1,0 +1,35 @@
+---
+
+- name: "Create directory for redis workspace"
+  file:
+    path: "/var/lib/redis-{{project_name}}-{{project_env}}"
+    state: directory
+    mode: 0755
+    owner: redis
+    group: redis
+
+- name: Create file systemd
+  template:
+    src: redis-server.service.j2
+    dest: "/usr/lib/systemd/system/redis-{{project_name}}-{{project_env}}.service"
+    mode: 0644
+    owner: root
+    group: root
+
+- name: Create file config
+  template:
+    src: redis.conf.j2
+    dest: "/etc/redis-{{project_name}}-{{project_env}}.conf"
+    mode: 0644
+    owner: redis
+    group: root
+
+- name: Reload daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Start and Enable new redis node
+  systemd: 
+    name: "redis-{{project_name}}-{{project_env}}.service"
+    state: started
+    enabled: yes

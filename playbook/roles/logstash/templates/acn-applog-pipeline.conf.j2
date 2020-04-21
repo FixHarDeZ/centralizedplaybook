@@ -1,0 +1,105 @@
+input {
+  beats {
+    port => 5044
+  }
+}
+
+filter {
+  if ![kubernetes][labels][logType] or [kubernetes][labels][logType] == "application"  {
+    if [log] !~ /^\s*[^\|]+(\|\s*\d+\s*)?\|\s*[A-Z]/ {
+      drop { }
+    }
+    if [log] =~ /^[^\|]+\|\d+\|.*$/ {
+      mutate { add_field => { "BU" => "%{[kubernetes][labels][appScope]}" }}
+      mutate { add_field => { "PATTERN" => "version" }}
+      grok {
+        patterns_dir => ["/etc/logstash/patterns"]
+        match => { "log" => "%{ACNDEFAULTAPPLOGPATTERN}" }
+      }
+
+      mutate { remove_field => [ "message" ] }
+      mutate { strip => [ "timestamp"] }
+    }
+    else {
+      grok {
+        patterns_dir => ["/etc/logstash/patterns"]
+        match => { "log" => "%{ACNAPPLOGEIGHTCOLUMNv1}" }
+      }
+
+    }
+  } else if [kubernetes][labels][logType] == "httpd" {
+    mutate { add_field => { "BU" => "%{[kubernetes][labels][appScope]}" }}
+    mutate { add_field => { "Module" => "%{[kubernetes][labels][appName]}-httpd" }}
+    mutate { copy  => { "timestamp" => "TimeStamp" }}
+    grok {
+      match => { "log" => "%{HTTPD_COMMONLOG}" }
+    }
+    if [user_agent] =~  /^(kube-probe)/ {
+      drop { }
+    }
+  } else if [kubernetes][labels][logType] == "nginx" {
+    mutate { add_field => { "BU" => "%{[kubernetes][labels][appScope]}" }}
+    mutate { add_field => { "Module" => "%{[kubernetes][labels][appName]}-nginx" }}
+    grok {
+      patterns_dir => ["/etc/logstash/patterns"]
+      match => { "log" => "%{NGINX_ACCESS}" }
+    }
+    if [user_agent] =~  /^(kube-probe)/ {
+      drop { }
+    }
+
+  } else if [kubernetes][labels][logType] == "thirdparty"  {
+    mutate { add_field => { "BU" => "%{[kubernetes][labels][appScope]}" }}
+    mutate { add_field => { "Module" => "%{[kubernetes][labels][appName]}" }}
+  } else {
+    drop { }
+  }
+
+
+  if !([Module]) {
+    drop { }
+  }
+  mutate { lowercase => ["Module"] }
+  mutate { lowercase => ["BU"] }
+  # date {
+    # match => [ "timestamp", "dd/MM/yyyy HH:mm:ss:SSS", "ISO8601", "YYYY-MM-dd HH:mm:ss" ]
+    # locale => "en"
+    # remove_field => [ "timestamp" ]
+  # }
+  if [kubernetes][labels][logType] != "thirdparty" {
+    date {
+      # 2018-08-21T06:59:59.646+07:00
+      match => [ "TimeStamp", "dd/MM/yyyy HH:mm:ss:SSS", "dd/MMM/yyyy:HH:mm:ss Z", "ISO8601", "YYYY-MM-dd HH:mm:ss" ]
+      locale => "en"
+      target => "@timestamp"
+      # remove_field => [ "timestamp", "TimeStamp", "time" ]
+    }
+  }
+  mutate {
+    remove_field => [ "log", "time", "beat", "source", "[kubernetes][labels][appScope]", "[kubernetes][labels][deployStretagy]", "[kubernetes][labels][deployment]", "[kubernetes][labels][deploymentconfig]", "[kubernetes][labels][pipelineVersion]" ]
+  }
+}
+
+output {
+  # elasticsearch {
+  #   hosts =>  [{% for els_node in groups['elasticsearch-client'] %}{% if loop.index > 1 %},{% endif %}"{{ hostvars[els_node]['node_domain_name'] }}:9200"{% endfor %}]
+  #   index => "acn-applog-%{BU}-%{Module}-%{+YYYY.MM.dd}"
+  #   manage_template => false
+  #   template_name => "applog_1"
+  #   codec => "json_lines"
+  #   enable_metric => false
+  # }
+  # file {
+    # path => "/var/log/logstash/debug-%{+YYYY.MM.dd}"
+  # }
+  rabbitmq {
+    vhost => 'log-messages'
+    exchange => 'log-messages'
+    exchange_type => 'fanout'
+    host => "rabbitmq.{{ search_domain }}"
+    user => 'log-messages'
+    password => 'log-messages'
+    persistent => true
+    port => 5672
+  }
+}

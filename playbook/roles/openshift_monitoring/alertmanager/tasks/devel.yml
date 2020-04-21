@@ -1,0 +1,57 @@
+- name: 'Alertmanager Template Config prod'
+  delegate_to: "192.168.11.201"
+  template:
+    src: "/home/awx/repo/lab-acm-ocp-alertmanager/alertmanager.j2"
+    dest: "/etc/prometheus/alertmanager.yml"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+    force: yes
+    remote_src: yes
+  ignore_errors: yes
+#  when: env == "prod"
+
+- name: 'Copy Alertmanager Template Config prod'
+#  delegate_to: "192.168.11.201"
+  copy:
+    src: "/home/awx/repo/lab-acm-ocp-alertmanager/alertmanager.j2"
+    dest: "/etc/prometheus/alertmanager.yml"
+#    remote_src: yes
+  ignore_errors: yes
+
+- name: 'Get alertmanager template'
+  delegate_to: "192.168.11.205"
+  shell: cat /home/awx/repo/lab-acm-ocp-alertmanager/alertmanager.j2 
+  register: almtpl
+
+- name: Copy alertmanager template
+ # delegate_to: "192.168.11.205"
+  copy:
+    content: "{{almtpl.stdout}}"
+    dest: /home/awx/repo/lab-acm-ocp-alertmanager/alertmanager.template
+    remote_src: yes
+    local_follow: yes
+
+- name: 'Get alertmanager variable'
+  delegate_to: "192.168.11.205"
+  shell: cat /home/awx/repo/lab-acm-ocp-alertmanager/alertmanager.var 
+  register: almvar
+
+- name: New Varliable
+  set_fact:
+    myvar: "{{almvar.stdout | from_yaml}}"
+
+- name: 'Generate alertmanager config'z
+
+  template:
+    src: "/home/awx/repo/lab-acm-ocp-alertmanager/alertmanager.template"
+    dest: "/etc/prometheus/alertmanager.yml"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+    force: yes
+    remote_src: yes
+  ignore_errors: yes
+
+- debug: var=almtpl
+- debug: var=myvar

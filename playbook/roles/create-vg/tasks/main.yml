@@ -1,0 +1,85 @@
+--- 
+
+- name: Install lvm2 
+  yum:
+    name: lvm2
+    state: present
+
+- name: Partition disk
+  parted: 
+    device: "{{ item.1 }}"
+    number: 1
+    flags: [ lvm ]
+    state: present
+  with_subelements:
+    - "{{ extra_vg }}"
+    - pdisk
+  when: extra_vg is defined
+
+- name: Create extra_vg
+  lvg:
+    vg: "{{ item.vg_name }}"
+    pvs: "{% for disk in item.pdisk %}{% if loop.index > 1 %},{% endif %}{{ disk }}1{% endfor %}"
+    state: present
+  with_items:
+     - "{{ extra_vg }}"
+  when: extra_vg is defined
+
+- name: Create extra_lv
+  lvol:
+    vg: "{{ item.vg_name }}"
+    lv: "{{ item.lv_name }}"
+    size: "+100%FREE"
+  with_items:
+    - "{{ extra_lv }}"
+  when: extra_lv is defined and ( ansible_lvm is not defined or ansible_lvm.lvs is not defined or ansible_lvm.lvs[item.lv_name] is not defined)
+    
+- name: Create extra_lv
+  lvol:
+    vg: "{{ item.vg_name }}"
+    lv: "{{ item.lv_name }}"
+    size: "+100%FREE"
+    opts: -r
+    # opts: -r
+  with_items:
+    - "{{ extra_lv }}"
+  when: extra_lv is defined and ( anslbie_lvm is defined and ansible_lvm.lvs is defined and ansible_lvm.lvs[item.lv_name] is defined )
+
+- name: Create mount point
+  file:
+    name: "{{ item.mount }}"
+    state: directory
+  with_items:
+    - "{{ extra_lv }}"
+  when: extra_lv is defined
+
+- name: Format file system
+  filesystem:
+    fstype: xfs
+    dev: "/dev/{{ item.vg_name }}/{{ item.lv_name }}"
+  with_items:
+    - "{{ extra_lv }}"
+  when: extra_lv is defined
+
+- name: Mount extra file system
+  mount:
+    path: "{{ item.mount }}"
+    src: "/dev/{{ item.vg_name }}/{{ item.lv_name }}"
+    state: mounted
+    fstype: xfs
+  with_items:
+    - "{{ extra_lv }}"
+  when: extra_lv is defined
+
+- name: Set selinux context for data path
+  sefcontext:
+    target: "{{ data_path }}(/.*)?"
+    setype: var_lib_t
+    state: present
+    reload: yes
+  when: data_path is defined
+
+- name: Ensure selinux context reload
+  shell: restorecon -R -v {{ data_path }}
+  when: data_path is defined
+

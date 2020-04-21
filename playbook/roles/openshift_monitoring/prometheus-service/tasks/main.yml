@@ -1,0 +1,6 @@
+---
+#- include: config-rules.yml
+#- include: config-main.yml
+#- include: service-options.yml service=prometheus 
+- name: 'CTRL'
+  include_tasks: './config-{{action}}.yml'

@@ -1,0 +1,88 @@
+---
+- name: Install postfix and sasl
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - postfix
+    - cyrus-sasl
+    - cyrus-sasl-lib
+    - cyrus-sasl-plain
+
+- name: Reconfigure interface
+  lineinfile:
+    path: /etc/postfix/main.cf
+    regexp: "^inet_interfaces.*"
+    line: "inet_interfaces = all"
+
+- name: Allow ipv4 only for smtp
+  lineinfile:
+    path: /etc/postfix/main.cf
+    regexp: "^inet_protocols = .*"
+    line: "inet_protocols = ipv4"
+
+- name: Allow host sendmail
+  lineinfile:
+    path: /etc/postfix/main.cf
+    regexp: "mynetworks =.*"
+    line: "mynetworks = 10.0.0.0/8"
+    insertbefore: EOF
+
+- name: Point postfix to external relay
+  lineinfile:
+    path: /etc/postfix/main.cf
+    regexp: "^{{ item.key }} =.*"
+    line: "{{ item.key }} = {{ item.value }}"
+    insertbefore: EOF
+  with_items: 
+    - { key: "relayhost", value: "[{{ external_relay }}]:587" }
+    - { key: "smtp_sasl_auth_enable", value: "yes" }
+    - { key: "smtp_sasl_security_options", value: "noanonymous" }
+    - { key: "smtp_sasl_password_maps", value: "hash:/etc/postfix/sasl_passwd" }
+    - { key: "smtp_tls_security_level", value: "encrypt" }
+    - { key: "smtp_tls_CAfile", value: "/etc/ssl/certs/ca-bundle.trust.crt" }
+    - { key: "sender_dependent_default_transport_maps", value: " hash:/etc/postfix/sender_transport" }
+    - { key: "smtpd_recipient_restrictions", value: "permit_mynetworks, reject_unknown_recipient_domain" }
+    - { key: "header_checks", value: "regexp:/etc/postfix/header_checks" }
+    - { key: "maximal_queue_lifetime", value: "60m" }
+
+- name: Disable sender non-delivery notification
+  lineinfile:
+    path: /etc/postfix/master.cf
+    regexp: "^bounce"
+    line: "bounce    unix  -       -       n       -       0       discard"
+    insertbefore: EOF
+
+- name: Discard internal spam email
+  lineinfile:
+    path: /etc/postfix/header_checks
+    line: "/^To:{{ item }}/ DISCARD discarded"
+    state: present
+    insertbefore: EOF
+  with_items: 
+    - "{{ recipient_blocked }}"
+
+- name: Add gmail sasl
+  template:
+    dest: /etc/postfix/sasl_passwd
+    src: sasl_passwd.j2
+    mode: 0600
+
+- name: Add gmail sasl
+  template:
+    dest: /etc/postfix/sender_transport
+    src: sender_transport.j2
+    mode: 0600
+
+- name: Create sasl database
+  shell: postmap /etc/postfix/sasl_passwd
+  
+- name: Create transport map database
+  shell: postmap /etc/postfix/sender_transport
+
+- name: Restart postfix
+  systemd:
+    name: postfix
+    state: restarted
+    enabled: yes
+

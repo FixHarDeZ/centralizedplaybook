@@ -1,0 +1,27 @@
+---
+- name: 'git pull'
+  raw: "cd /home/sysansible/acm-ocp-grafana/; git checkout {{orgName}}; git pull origin {{orgName}}"
+  
+- name: 'CRATE HOMEDIR DATA'
+  file:
+    path: "/home/sysansible/data"
+    state: directory
+    owner: sysansible
+    group: sysansible
+  
+- name: 'COPY library to server'
+  copy: 
+    src: "files/sre_grafana_restore" 
+    dest: "/home/sysansible/sre_grafana_restore"
+    mode: "u+rwx"
+
+- name:  'copying data {{orgName}}'
+  raw: "cp -r /home/sysansible/acm-ocp-grafana/{{orgName}} /home/sysansible/data/"
+
+- name: 'RUN Script Grafana'
+  raw: "cd /home/sysansible/; ./sre_grafana_restore --target={{target}} --orgName={{orgName}} --handler=update-dashboard --tokenkey={{tokenkey}} --dashboard='{{dashboard}}'"
+
+- name: 'DELETE HOMEDIR DATA'
+  file:
+    path: "/home/sysansible/data"
+    state: absent

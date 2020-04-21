@@ -1,0 +1,6 @@
+- name: create_resources_quota
+  hosts: instance-openshift_master
+  become: yes
+  become_user: root
+  roles:
+    - { role: create_resources_quota }

@@ -1,0 +1,165 @@
+---
+
+- name: "Create user"
+  ipa_user:
+    name: "{{new_user}}"
+    password: "{{new_pass}}"
+    state: present
+    givenname: "{{new_name}}"
+    sn: "{{new_lastname}}"
+    mail: 
+      - "{{email}}"
+    ipa_host: "{{ipa_env_endpoint}}"
+    ipa_user: "{{ipa_admin_username}}"
+    ipa_pass: "{{ipa_admin_password}}"
+  ignore_errors: yes
+  when: 
+    - addtype == "single"
+    - action == "ipa"
+  tags:
+    - single
+
+- name: Config ip address
+  template:
+    src: user.ser.j2
+    dest: /etc/openvpn/ccd/{{new_user}}
+    owner: openvpn
+    group: openvpn
+    mode: 0640
+  when: 
+    - addtype == "single"
+    - action == "vpn"
+  tags:
+    - single
+
+- name: add to group
+  shell: "echo $(echo '{{ipa_admin_password}}' | kinit {{ipa_admin_username}});echo $(for group in $(echo {{add2group}} | sed 's/,/ /g');do ipa group-add-member ${group} --users={{new_user}};done)"
+  ignore_errors: yes
+  when: 
+    - addtype == "single"
+    - action == "ipa"
+  tags:
+    - single
+
+## ===================================================
+- name: "Create user"
+  ipa_user:
+    name: "{{item.user}}"
+    password: "{{item.password}}"
+    state: present
+    givenname: "{{item.name}}"
+    sn: "{{item.lastname}}"
+    mail: 
+      - "{{item.email}}"
+    ipa_host: "{{ipa_env_endpoint}}"
+    ipa_user: "{{ipa_admin_username}}"
+    ipa_pass: "{{ipa_admin_password}}"
+  with_items: "{{user_list}}"
+  ignore_errors: yes
+  when: 
+    - addtype == "multiple"
+    - action == "ipa"
+  tags:
+    - multiple
+
+- name: Config ip address
+  template:
+    src: user.ser_multi.j2
+    dest: /etc/openvpn/ccd/{{item.user}}
+    owner: openvpn
+    group: openvpn
+    mode: 0640
+  with_items: "{{user_list}}"
+  when: 
+    - addtype == "multiple"
+    - action == "vpn"
+  tags:
+    - multiple
+
+- name: add to group
+  shell: "echo $(echo '{{ipa_admin_password}}' | kinit {{ipa_admin_username}});echo $(for group in $(echo {{item.group}} | sed 's/,/ /g');do ipa group-add-member ${group} --users={{item.user}};done)"
+  with_items: "{{user_list}}"
+  ignore_errors: yes
+  when: 
+    - addtype == "multiple"
+    - action == "ipa"
+  tags:
+    - multiple
+
+- name: Send email to user (single)
+  mail:
+    subject: "User and VPN profile for OpenShift {{mail_environment}}"
+    host: "{{mail_server}}"
+    port: "{{mail_port}}"
+    body: |
+      <p>Hello {{new_name}}, </p>
+      <p>
+      This is VPN profile for OpenShift {{mail_environment}}.<br>
+      ==> {{vpn_profile_url}}<br>
+      </p>
+      <p>
+      <h3>Your Credential</h3>
+      <blockquote>
+      Username => {{new_user}}<br>
+      Password => {{new_pass}}
+      </blockquote>
+      </p>
+      <p>
+      <blockquote>
+      If you connected VPN than you changing your password and access this for change your password {{idm_url}} and skip popup login. After you change password must be reconnect your vpn.<br>
+      </blockquote>
+      </p>
+      <p>
+      Best Regards,<br>
+      TMN_System@ascendcorp.com
+      </p>
+    from: tmn_system@ascendcorp.com (TMN_System)
+    to: "{{email}}"
+    bcc: "tmn_system@ascendcorp.com"
+    subtype: "html"
+  when: 
+    - addtype == "single"
+    - action == "ipa"
+    - sendmail == "yes"
+  tags:
+    - single
+
+- name: Send email to user (multiple)
+  mail:
+    subject: "User and VPN profile for OpenShift {{mail_environment}}"
+    host: "{{mail_server}}"
+    port: "{{mail_port}}"
+    body: |
+      <p>Hello {{item.name}}, </p>
+      <p>
+      This is VPN profile for OpenShift {{mail_environment}}.<br>
+      ==> {{vpn_profile_url}}<br>
+      </p>
+      <p>
+      <h3>Your Credential</h3>
+      <blockquote>
+      Username => {{item.user}}<br>
+      Password => {{item.password}}
+      </blockquote>
+      </p>
+      <p>
+      <blockquote>
+      If you can not connect VPN please update your VPN client.
+      If you connected VPN than you changing your password and access this for change your password {{idm_url}} and skip popup login. After you change password must be reconnect your vpn.<br>
+      </blockquote>
+      </p>
+      <p>
+      Best Regards,<br>
+      TMN_System@ascendcorp.com
+      </p>
+    from: tmn_system@ascendcorp.com (TMN_System)
+    to: "{{item.email}}"
+    bcc: "tmn_system@ascendcorp.com"
+    subtype: "html"
+  with_items: "{{user_list}}"
+  when: 
+    - addtype == "multiple"
+    - action == "ipa"
+    - sendmail == "yes"
+  tags:
+    - multiple

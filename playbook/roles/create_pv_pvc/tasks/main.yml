@@ -1,0 +1,56 @@
+---
+- name: Include files in vars
+  include_vars:
+    file: 'vars/{{ country_env }}.yml'
+    
+#- debug: msg="{{ item.ns }}-{{ item.nfs.pv_name }}-{{ item.nfs.pvc_name }}-{{ item.nfs.path_name }}-{{ item.nfs.size }}"
+#  with_dict: "{{ data }}"
+
+- name: Oc login
+  shell: oc login -u system:admin -n default
+  
+- name: 'GET DATA PV'
+  shell: oc get pv --all-namespaces | grep nfs | awk '{print $1}'
+  register: pv_output
+  
+- name: 'GET DATA PVC'
+  shell: oc get pvc --all-namespaces | grep nfs | awk '{print $2}'
+  register: pvc_output
+  
+- name: 'CREATE TEMPLATE pv'
+  template:
+    src: pv.yml.j2
+    dest: /home/pv-{{ item.nfs.pv_name }}.yml
+  when: '"{{ item.nfs.pv_name }}" not in pv_output.stdout_lines'
+  with_items: "{{ data }}"
+    
+- name: 'CREATE TEMPLATE pvc'
+  template:
+    src: pvc.yml.j2
+    dest: /home/pvc-{{ item.nfs.pvc_name }}.yml
+  when: '"{{ item.nfs.pvc_name }}" not in pvc_output.stdout_lines'
+  with_items: "{{ data }}"
+  
+- name: 'RUN FILES PV'
+  raw: oc create -f /home/pv-{{ item.nfs.pv_name }}.yml -n {{ item.ns }}
+  when: '"{{ item.nfs.pv_name }}" not in pv_output.stdout_lines'
+  with_items: "{{ data }}"
+  
+- name: 'RUN FILES PVC'
+  raw: oc create -f /home/pvc-{{ item.nfs.pvc_name }}.yml -n {{ item.ns }}
+  when: '"{{ item.nfs.pvc_name }}" not in pvc_output.stdout_lines'
+  with_items: "{{ data }}"
+
+- name: 'REMOVE FILES PV'
+  file: 
+    path: /home/pv-{{ item.nfs.pv_name }}.yml
+    state: absent
+  when: '"{{ item.nfs.pv_name }}" not in pv_output.stdout_lines'
+  with_items: "{{ data }}"
+    
+- name: 'REMOVE FILES PVC'
+  file: 
+    path: /home/pvc-{{ item.nfs.pvc_name }}.yml
+    state: absent
+  when: '"{{ item.nfs.pvc_name }}" not in pvc_output.stdout_lines'
+  with_items: "{{ data }}"

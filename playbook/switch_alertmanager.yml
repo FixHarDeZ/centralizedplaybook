@@ -1,0 +1,6 @@
+---
+- hosts: instance-ansible
+  become: yes
+  become_user: root
+  roles:
+    - { role: openshift_monitoring/switch_alertmanager }

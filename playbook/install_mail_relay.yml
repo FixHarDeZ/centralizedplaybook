@@ -1,0 +1,5 @@
+---
+- name: Install and configure mail relay
+  hosts: mail_relay
+  roles:
+    - mail_relay

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# =================== Varibale Declaration ==================
+APP_NAME="{{ proj_name }}"
+APP_CPU="{{ proj_cpu }}"
+APP_MEM="{{ proj_mem }}"
+ENV="{{ country_env }}"
+# ===========================================================
+
+# Openshift Resoure allocation
+cat <<EOF > /tmp/non_prod-ocp-adjust-quota${ENV}.yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-resources
+  namespace: $APP_NAME
+spec:
+  hard:
+    limits.cpu: $APP_CPU
+    limits.memory: $APP_MEM
+  scopes:
+  - NotTerminating
+EOF
+
+oc apply -f /tmp/non_prod-ocp-adjust-quota${ENV}.yaml -n $APP_NAME

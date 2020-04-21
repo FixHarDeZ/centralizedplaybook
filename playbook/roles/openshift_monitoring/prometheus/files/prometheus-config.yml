@@ -1,0 +1,317 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus-configmap
+  namespace: monitoring
+data:
+  prometheus.yml: |-
+    global:
+      scrape_interval: 30s
+      scrape_timeout: 30s
+    scrape_configs:
+    - job_name: 'kubernetes-apiservers'
+      kubernetes_sd_configs:
+      - role: endpoints
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        # insecure_skip_verify: true
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      metric_relabel_configs:
+      - source_labels: [ __name__ ]
+        regex: 'apiserver_admission_controller_admission_latencies_seconds_bucket'
+        action: drop
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: default;kubernetes;https
+      - source_labels: [__address__]
+        regex: (.+)
+        target_label: 'instance_hostname'
+
+      #
+      # Each node exposes a /metrics endpoint that contains operational metrics for
+      # the Kubelet and other components.
+
+
+    - job_name: 'kubernetes-node_exporter'
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        insecure_skip_verify: true
+      kubernetes_sd_configs:
+      - role: node
+      metric_relabel_configs:
+      - source_labels: [mountpoint]
+        regex: '/var/lib/origin/openshift.local.volumes/pods/(.+)/volumes/kubernetes.io.+'
+        replacement: '${1}'
+        target_label: "pod_id"
+      - source_labels: [mountpoint]
+        regex: '/var/lib/origin/openshift.local.volumes/pods/(.+)/volumes/kubernetes.io\~(.+)/.+'
+        replacement: '${2}'
+        target_label: "pvtype"
+      - source_labels: [mountpoint]
+        regex: '/var/lib/origin/openshift.local.volumes/pods/(.+)/volumes/kubernetes.io\~(.+)/(.+)'
+        replacement: '${3}'
+        target_label: "pvmount"
+      - source_labels: [mountpoint]
+        regex: '/var/lib/origin/openshift.local.volumes/pods/(.+)/volume-subpaths/.+'
+        replacement: '${1}'
+        target_label: "pod_id"
+      - source_labels: [mountpoint]
+        regex: '/var/lib/origin/openshift.local.volumes/pods/(.+)/volume-subpaths/.+'
+        replacement: 'subpaths'
+        target_label: "pvtype"
+      - source_labels: [mountpoint]
+        regex: '/var/lib/origin/openshift.local.volumes/pods/(.+)/volume-subpaths/(.+)'
+        replacement: '${2}'
+        target_label: "pvmount"
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - source_labels: [__address__]
+        regex: '(.+):10250'
+        replacement: '${1}:9200'
+        target_label: __address__
+      - source_labels: [__address__]
+        regex: '(.+)'
+        target_label: "instance"
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: 'instance_hostname'
+      - regex: 'kubernetes_io_hostname'
+        action: labeldrop
+    - job_name: 'kubernetes-cadvisor'
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      metrics_path: /metrics/cadvisor
+      kubernetes_sd_configs:
+      - role: node
+      metric_relabel_configs:
+      - source_labels: [__name__,name]
+        regex: 'container_fs_usage_bytes;(.+)_(.+)_[0-9]+'
+        replacement: '${2}'
+        target_label: "pod_id"
+      - source_labels: [ id ]
+        regex: '/system.slice/.+'
+        action: drop
+      - source_labels: [__name__,id]
+        regex: 'container_cpu_usage_seconds_total;/kubepods.slice/(kubepods-pod|kubepods-burstable.slice/kubepods-burstable-pod|kubepods-besteffort.slice/kubepods-besteffort-pod)(.+)\.slice'
+        action: drop
+      - source_labels: [ __name__ ]
+        regex: '(container_fs_io_current|container_fs_writes_merged_total|container_fs_reads_merged_total)'
+        action: drop
+      - source_labels: [ __name__ ]
+        regex: '(container_network_tcp_usage_total|container_network_udp_usage_total)'
+        action: drop
+      - source_labels: [ __name__ ]
+        regex: '(container_cpu_load_average_10s|container_tasks_state)'
+        action: drop
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - source_labels: [__address__]
+        regex: '(.*)'
+        target_label: "instance"
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: 'instance_hostname'
+      - regex: 'kubernetes_io_hostname'
+        action: labeldrop
+    #- job_name: 'kubernetes-state'
+    #  metric_relabel_configs:
+    #  - source_labels: [pod]
+    #    regex: '(.*)'
+    #    target_label: "pod_name"
+    #  - source_labels: [replicationcontroller]
+    #    regex: '(.+)-[0-9]+'
+    #    replacement: '${1}'
+    #    target_label: "replicationcontrollers"
+    #  - regex: 'instance'
+    #    action: labeldrop
+    #  static_configs:
+    #    - targets: ['kube-state-metrics:8080']
+    - job_name: 'openshift-monitoring/kube-state-metrics/0'
+      honor_labels: true
+      scrape_interval: 2m
+      scrape_timeout: 2m
+      metrics_path: /metrics
+      scheme: https
+      kubernetes_sd_configs:
+      - api_server: null
+        role: endpoints
+        namespaces:
+          names:
+          - openshift-monitoring
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+        server_name: kube-state-metrics.openshift-monitoring.svc
+        insecure_skip_verify: false
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_label_k8s_app]
+        separator: ;
+        regex: kube-state-metrics
+        replacement: $1
+        action: keep
+      - source_labels: [__meta_kubernetes_endpoint_port_name]
+        separator: ;
+        regex: https-main
+        replacement: $1
+        action: keep
+      - source_labels: [__meta_kubernetes_namespace]
+        separator: ;
+        regex: (.*)
+        target_label: namespace
+        replacement: $1
+        action: replace
+      - source_labels: [__meta_kubernetes_pod_name]
+        separator: ;
+        regex: (.*)
+        target_label: pod
+        replacement: $1
+        action: replace
+      - source_labels: [__meta_kubernetes_service_name]
+        separator: ;
+        regex: (.*)
+        target_label: service
+        replacement: $1
+        action: replace
+      - source_labels: [__meta_kubernetes_service_name]
+        separator: ;
+        regex: (.*)
+        target_label: job
+        replacement: ${1}
+        action: replace
+      - source_labels: [__meta_kubernetes_service_label_k8s_app]
+        separator: ;
+        regex: (.+)
+        target_label: job
+        replacement: ${1}
+        action: replace
+      - separator: ;
+        regex: (.*)
+        target_label: endpoint
+        replacement: https-main
+        action: replace
+    
+    - job_name: 'openshift-monitoring/kube-state-metrics/1'
+      honor_labels: true
+      scrape_interval: 2m
+      scrape_timeout: 2m
+      metrics_path: /metrics
+      scheme: https
+      kubernetes_sd_configs:
+      - api_server: null
+        role: endpoints
+        namespaces:
+          names:
+          - openshift-monitoring
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+        server_name: kube-state-metrics.openshift-monitoring.svc
+        insecure_skip_verify: false
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_label_k8s_app]
+        separator: ;
+        regex: kube-state-metrics
+        replacement: $1
+        action: keep
+      - source_labels: [__meta_kubernetes_endpoint_port_name]
+        separator: ;
+        regex: https-self
+        replacement: $1
+        action: keep
+      - source_labels: [__meta_kubernetes_namespace]
+        separator: ;
+        regex: (.*)
+        target_label: namespace
+        replacement: $1
+        action: replace
+      - source_labels: [__meta_kubernetes_pod_name]
+        separator: ;
+        regex: (.*)
+        target_label: pod
+        replacement: $1
+        action: replace
+      - source_labels: [__meta_kubernetes_service_name]
+        separator: ;
+        regex: (.*)
+        target_label: service
+        replacement: $1
+        action: replace
+      - source_labels: [__meta_kubernetes_service_name]
+        separator: ;
+        regex: (.*)
+        target_label: job
+        replacement: ${1}
+        action: replace
+      - source_labels: [__meta_kubernetes_service_label_k8s_app]
+        separator: ;
+        regex: (.+)
+        target_label: job
+        replacement: ${1}
+        action: replace
+      - separator: ;
+        regex: (.*)
+        target_label: endpoint
+        replacement: https-self
+        action: replace
+        
+---
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus-dc
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    name: prometheus
+  trigger:
+    type: ConfigChange
+  strategy:
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        name: prometheus
+    spec:
+      containers:
+      - image: {{ image_prometheus }}
+        name: prometheus-image
+        args:
+          - --config.file=/etc/prometheus/prometheus.yml
+          - --web.listen-address=:9090
+          - --storage.tsdb.retention=5h
+          - --storage.tsdb.min-block-duration=15m
+          - --storage.tsdb.max-block-duration=60m
+        ports:
+        - name: http
+          containerPort: 9090
+        volumeMounts:
+        - mountPath: /etc/prometheus
+          name: prometheus-volume-config
+        - mountPath: /prometheus
+          name: prometheus-volume-empty
+        livenessProbe:
+          httpGet:
+            port: http
+          initialDelaySeconds: 1
+        readinessProbe:
+          httpGet:
+            port: http
+          initialDelaySeconds: 1
+      volumes:
+      - name: prometheus-volume-config
+        configMap:
+          name: prometheus-configmap
+      - emptyDir: {}
+        name: prometheus-volume-empty

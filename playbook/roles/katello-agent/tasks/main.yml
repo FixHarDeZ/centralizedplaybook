@@ -1,0 +1,152 @@
+--- 
+
+- name: Remove all local repo (1)
+  file:
+    path: /etc/yum.repos.d/bck/
+    state: directory
+
+- name: Remove all local repo (2)
+  raw: mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/bck/
+  ignore_errors: yes
+
+- name: Remove /etc/shadow.lock
+  file:
+    path: /etc/shadow.lock
+    state: absent
+
+- name: Install pulp repo to install subscription manager 
+  template:
+    src: satellite.repo.j2
+    dest: /etc/yum.repos.d/satellite.repo
+    owner: root
+    group: root
+    mode: 0600
+  when: 
+    - ansible_distribution_major_version == "7"
+    - ansible_distribution == "CentOS"
+
+- name: Install pulp repo to install subscription manager 
+  template:
+    src: satellite-centos6.repo.j2
+    dest: /etc/yum.repos.d/satellite.repo
+    owner: root
+    group: root
+    mode: 0600
+  when: 
+    - ansible_distribution_major_version == "6"
+    - ansible_distribution == "CentOS"
+
+- name: Install subscription-manager 
+  yum:
+    name: subscription-manager
+    state: latest
+  when: ansible_distribution == "CentOS"
+
+- name: Remove all local repo (1)
+  file:
+    path: /etc/yum.repos.d/bck/
+    state: directory
+  when: ansible_distribution == "CentOS"
+
+- name: Remove all local repo (2)
+  raw: mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/bck/
+  ignore_errors: yes
+  when: ansible_distribution == "CentOS"
+
+- name: Install katello ca consumer
+  yum:
+    name: http://{{ satellite_env_endpoint }}/pub/katello-ca-consumer-latest.noarch.rpm
+    state: present
+
+- name: Subscript to satellite
+  redhat_subscription:
+    state: present
+    activationkey: "{{ satellite_key }}"
+    org_id: "{{ satellite_org }}"
+    force_register: yes 
+## for fix dupes packages
+- name: Fixing dupes packages
+  script: scripts/fix-dupes-packages.bash
+  register: fix_dupes
+  failed_when: fix_dupes.rc == 1
+  changed_when: fix_dupes.rc == 3
+  ignore_errors: yes
+  tags:
+    - fix-dupes-packages
+    
+## for fix problems packages
+- name: Fixing problems packages
+  script: scripts/fix-problems-packages.bash
+  register: fix_problems
+  failed_when: fix_problems.rc == 1
+  changed_when: fix_problems.rc == 3
+  ignore_errors: yes
+  tags:
+    - fix-problems-packages
+
+- name: Update system
+  yum: 
+    name: '*'
+    state: latest
+  when: update_all
+  register: update
+
+- name: Restart server
+  command: /sbin/shutdown -r +1
+  async: 0
+  poll: 0
+  ignore_errors: true
+  when: 
+    - update.changed == true
+    - update_all
+  tags:
+    - install_katello_reboot_server
+
+- name: Delay for reboot
+  pause:
+    minutes: 2
+  delegate_to: localhost
+  when: 
+    - update.changed == true
+    - update_all
+  tags:
+    - install_katello_reboot_server
+
+- name: waiting for reboot server
+  wait_for:
+    host: "{{ inventory_hostname }}"
+    # search_regex: OpenSSH
+    connect_timeout: 5
+    port: 22
+    sleep: 10
+    delay: 30
+    timeout: 180
+  become: false
+  ignore_errors: yes
+  delegate_to: localhost
+  when: 
+    - update.changed == true
+    - update_all
+  tags:
+    - install_katello_reboot_server
+
+- name: Remove all local repo (CentOS*)
+  raw: mv /etc/yum.repos.d/CentOS*.repo /etc/yum.repos.d/bck/
+  ignore_errors: yes
+
+- name: Remove all local repo (epel*)
+  raw: mv /etc/yum.repos.d/epel*.repo /etc/yum.repos.d/bck/
+  ignore_errors: yes
+
+# - name: Enable katello agent installation
+#   shell: subscription-manager repos --enable=rhel-\\*-satellite-tools-\\*-rpms
+# 
+# - name: Enable all repositories starting with rhel-6-server
+#   rhsm_repository:
+#     name: rhel-6-server*
+#     state: enabled
+
+- name: Install katello agent
+  yum:
+    name: katello-agent
+    state: present

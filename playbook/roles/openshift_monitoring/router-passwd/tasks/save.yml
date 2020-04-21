@@ -1,0 +1,51 @@
+---
+- name: GET OPENSHIFT ROUTER PUBLIC POD ID
+  shell: oc get pods --selector="deploymentconfig=router-public" --all-namespaces  | awk {'print $2'}  
+  register: pod_public
+  
+- name: GET OPENSHIFT ROUTER PARTNER POD ID
+  shell: oc get pods --selector="deploymentconfig=router-partner" --all-namespaces  | awk {'print $2'}  
+  register: pod_partner
+
+- name: GET OPENSHIFT ROUTER PRIVATE POD ID
+  shell: oc get pods --selector="deploymentconfig=router-private" --all-namespaces  | awk {'print $2'}
+  register: pod_private
+  
+- name: GET OPENSHIFT ROUTER GENERAL POD ID
+  shell: oc get pods --selector="deploymentconfig=router" --all-namespaces  | awk {'print $2'}   
+  register: pod_general
+
+
+
+- name: GET OPENSHIFT ROUTER PUBLIC PASSWORD
+  shell: oc describe pod {{pod_public.stdout_lines[1]}} -n default | grep STATS_PASSWORD | awk {'print $2'}
+  register: result_public
+  
+- name: GET OPENSHIFT ROUTER PARTNER PASSWORD
+  shell: oc describe pod {{pod_partner.stdout_lines[1]}} -n default | grep STATS_PASSWORD | awk {'print $2'}
+  register: result_partner
+  
+- name: GET OPENSHIFT ROUTER PRIVATE PASSWORD
+  shell: oc describe pod {{pod_private.stdout_lines[1]}} -n default | grep STATS_PASSWORD | awk {'print $2'}
+  register: result_private
+
+- name: GET OPENSHIFT ROUTER GENERAL PASSWORD
+  shell: oc describe pod {{pod_general.stdout_lines[1]}} -n default | grep STATS_PASSWORD | awk {'print $2'}
+  register: result_general
+    
+- name: SET FACT OPENSHIFT ROUTER PASSWORD
+  set_fact:
+    openshift_router_password_public: "{{result_public.stdout}}"
+    openshift_router_password_partner: "{{result_partner.stdout}}"
+    openshift_router_password_private: "{{result_private.stdout}}"
+    openshift_router_password_general: "{{result_general.stdout}}"
+
+#- name: 'WRITE HAPROXY AUTH'
+#  local_action: copy content="{{result.stdout}}" dest="{{vars.vars.passwd_path}}"
+
+
+
+
+#- debug: var=playbook_dir
+#- debug: var=inventory_dir
+#- debug: var=pod_id.stdout_lines[1]

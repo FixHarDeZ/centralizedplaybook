@@ -1,0 +1,5 @@
+- name: prune images
+  hosts: instance-openshift_master
+  become: yes
+  become_user: root
+    - { role: prune_images}

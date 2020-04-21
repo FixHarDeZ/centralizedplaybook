@@ -1,0 +1,3 @@
+{% for sasl in sasl_list %} 
+[{{ sasl.relay }}]:587 {{ sasl.user }}:{{ sasl.password }}
+{% endfor %}

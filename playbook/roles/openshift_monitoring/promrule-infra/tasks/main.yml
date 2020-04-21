@@ -1,0 +1,21 @@
+---  
+- name: Generate promrule 
+  become: false
+  shell: "{{repo_path}}/tasks/prometheus-rules-update.sh generate {{env_name}} {{repo_path}} {{repo_path}}/tmp"
+  register: promrules_generate_result
+- debug: var=promrules_generate_result.stdout_lines
+
+
+- name: scp to target server
+  become: false
+  shell: "{{repo_path}}/tasks/prometheus-rules-update.sh deploy {{repo_path}}/tmp {{item}} sysansible /home/sysansible/.ssh/id_rsa {{target_path}} {{target_chmod}}"
+  register: promrules_sync_result
+  with_items: "{{ target_hosts }}"
+
+
+#- debug: var=promrules_sync_result
+
+- name: "message promrules_sync_result "
+  debug:
+    msg: "An item: {{item}}"
+  with_items: "{{promrules_sync_result.results}}"

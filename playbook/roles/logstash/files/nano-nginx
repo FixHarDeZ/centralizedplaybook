@@ -1,0 +1,7 @@
+METHOD (OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT)
+NGINX_ACCESS_OLD %{IPORHOST:visitor_ip} - %{USERNAME:remote_user} \[%{HTTPDATE:TimeStamp}\] "%{DATA:server_name}" "%{METHOD:method} %{URIPATHPARAM:path} HTTP/%{NUMBER:http_version}" %{INT:status} %{INT:body_bytes_sent} "%{URI:referer}" %{QS:user_agent} ${IPORHOST:http_x_forward_for}
+NGINX_ACCESS_OLD_2	%{IPORHOST:visitor_ip} - %{USERNAME:remote_user} \[%{HTTPDATE:TimeStamp}\] "%{METHOD:method} %{URIPATHPARAM:path} HTTP/%{NUMBER:http_version}" %{INT:status} %{INT:body_bytes_sent} "%{URI:referer}" "%{QS:user_agent}" "${NOTSPACE:http_x_forward_for}"
+NGINX_ACCESS	^(?<visitor_ip>[^ ]+) - (?<remote_user>[^ ]+) \[(?<TimeStamp>[^\]]+)\] "(?<method>[^ ]+) (?<path>[^ ]+) HTTP/(?<http_version>[0-9\.]+)" (?<status>[0-9]+) (?<body_bytes_sent>[0-9]+) "(?<referer>[^ ]+)" "(?<user_agent>[^\"]+)" "(?<http_x_forward_for>[^\"]+)"
+
+ERRORDATE %{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}
+NGINX_ERROR %{ERRORDATE:TimeStamp} \[%{LOGLEVEL:level}\] %{INT:process_id}#%{INT:thread_id}: \*(%{INT:connection_id})? %{GREEDYDATA:description}

@@ -1,0 +1,9 @@
+---
+
+- name: Install katello-agent 
+  hosts: all
+  become: yes
+  become_user: root  
+  roles:
+       - resolv
+       - katello-agent

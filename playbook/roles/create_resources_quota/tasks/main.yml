@@ -1,0 +1,57 @@
+---
+- name: Include files in vars
+  include_vars:
+    file: 'vars/{{ country_env }}.yml'
+    
+- name: Oc login
+  shell: oc login -u system:admin -n default
+  
+- name: 'CHECK NAMESPACES'
+  shell: oc get ns | awk '{print $1}'
+  register: ns_output
+  
+- name: 'TEMPLATE apply-ocp.sh ENV EMPTY'
+  template:
+    src: apply-ocp.sh.j2
+    dest: /home/apply-ocp-{{ item.APP_SCOPE }}-{{ item.SVC_GROUP }}.sh
+    mode: "u=rwx"
+  when: '"{{ item.ENV }}" == "" and "{{ item.APP_SCOPE }}-{{ item.SVC_GROUP }}" not in ns_output.stdout_lines'
+  with_items:
+    - "{{ Service_Group }}"
+  
+- name: 'CREATE FILES ENV EMPTY'
+  shell: /home/apply-ocp-{{ item.APP_SCOPE }}-{{ item.SVC_GROUP }}.sh
+  when: '"{{ item.ENV }}" == "" and "{{ item.APP_SCOPE }}-{{ item.SVC_GROUP }}" not in ns_output.stdout_lines'
+  with_items:
+    - "{{ Service_Group }}"
+  
+- name: 'REMOVE FILES ENV EMPTY'
+  file: 
+    path: /home/apply-ocp-{{ item.APP_SCOPE }}-{{ item.SVC_GROUP }}.sh
+    state: absent
+  when: '"{{ item.ENV }}" == "" and "{{ item.APP_SCOPE }}-{{ item.SVC_GROUP }}" not in ns_output.stdout_lines'
+  with_items:
+    - "{{ Service_Group }}"
+    
+- name: 'TEMPLATE apply-ocp.sh HAVE ENV'
+  template:
+    src: apply-ocp.sh.j2
+    dest: /home/apply-ocp-{{ item.APP_SCOPE }}-{{ item.SVC_GROUP }}-{{ item.ENV }}.sh
+    mode: "u=rwx"
+  when: '"{{ item.ENV }}" != "" and "{{ item.APP_SCOPE }}-{{ item.SVC_GROUP }}-{{ item.ENV }}" not in ns_output.stdout_lines'
+  with_items:
+    - "{{ Service_Group }}"
+  
+- name: 'CREATE FILES HAVE ENV'
+  shell: /home/apply-ocp-{{ item.APP_SCOPE }}-{{ item.SVC_GROUP }}-{{ item.ENV }}.sh
+  when: '"{{ item.ENV }}" != "" and "{{ item.APP_SCOPE }}-{{ item.SVC_GROUP }}-{{ item.ENV }}" not in ns_output.stdout_lines'
+  with_items:
+    - "{{ Service_Group }}"
+  
+- name: 'REMOVE FILES HAVE ENV'
+  file: 
+    path: /home/apply-ocp-{{ item.APP_SCOPE }}-{{ item.SVC_GROUP }}-{{ item.ENV }}.sh
+    state: absent
+  when: '"{{ item.ENV }}" != "" and "{{ item.APP_SCOPE }}-{{ item.SVC_GROUP }}-{{ item.ENV }}" not in ns_output.stdout_lines'
+  with_items:
+    - "{{ Service_Group }}"

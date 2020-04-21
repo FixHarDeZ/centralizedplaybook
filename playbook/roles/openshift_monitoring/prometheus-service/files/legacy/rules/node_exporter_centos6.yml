@@ -1,0 +1,22 @@
+groups:
+- name: instance_alert
+  rules:
+  - alert: instance_memory_warning_cent6
+    expr: (((node_memory_MemTotal_bytes{centos="6"}) - ((node_memory_MemFree_bytes{centos="6"})+(node_memory_Cached_bytes{centos="6"})))/(node_memory_MemTotal_bytes{centos="6"}))*100 > 85 and (((node_memory_MemTotal_bytes{centos="6"}) - ((node_memory_MemFree_bytes{centos="6"})+(node_memory_Cached_bytes{centos="6"})))/(node_memory_MemTotal_bytes{centos="6"}))*100 <= 90 
+    for: 5m
+    labels:
+      severity: warning
+      owner: sys
+    annotations:
+      summary: "instance memory usage > 80%"
+      description: "{{$labels.instance}} instance memory usage {{$value}}%"
+
+  - alert: instance_memory_critical_cent6
+    expr: (((node_memory_MemTotal_bytes{centos="6"}) - ((node_memory_MemFree_bytes{centos="6"})+(node_memory_Cached_bytes{centos="6"})))/(node_memory_MemTotal_bytes{centos="6"}))*100 > 90 
+    for: 5m
+    labels:
+      severity: critical
+      owner: sys
+    annotations:
+      summary: "instance memory usage > 90%"
+      description: "{{$labels.instance}} instance memory usage {{$value}}%"

@@ -1,0 +1,302 @@
+---
+data:
+- ns: common-cicd-platform
+  nfs:
+    pv_name: pv-console-workspace
+    pvc_name: pvc-console-workspace
+    path_name: /console_workspace
+    size: 20Gi
+- ns: common-cicd-platform
+  nfs:
+    pv_name: pv-vault-data
+    pvc_name: pvc-vault-data
+    path_name: /vault
+    size: 10Gi
+- ns: equator-cicd
+  nfs:
+    pv_name: pv-maven-repo-equator
+    pvc_name: jenkins-mvn-local-repo
+    path_name: /maven_repo_equator
+    size: 50Gi
+- ns: equator-cicd
+  nfs:
+    pv_name: pv-configuration-data-equator
+    pvc_name: pvc-configuration-data
+    path_name: /configuration_equator
+    size: 50Gi
+- ns: equator-cicd
+  nfs:
+    pv_name: pv-jenkins-home-equator
+    pvc_name: pvc-jenkins-home
+    path_name: /jenkins_home_equator
+    size: 30Gi
+- ns: equator-cicd
+  nfs:
+    pv_name: pv-jenkins-job-equator
+    pvc_name: pvc-jenkins-job
+    path_name: /jenkins_jobs_equator
+    size: 50Gi
+- ns: equator-cicd
+  nfs:
+    pv_name: pv-jenkins-workspace-equator
+    pvc_name: pvc-jenkins-workspace
+    path_name: /jenkins_workspace_equator
+    size: 100Gi
+- ns: equator-default-dev
+  nfs:
+    pv_name: equator-dataexport-vol01-dev-pv
+    pvc_name: equator-dataexport-vol01-dev-pvc
+    path_name: /equator_dataexport-vol01_dev
+    size: 5Gi
+- ns: equator-default-dev
+  nfs:
+    pv_name: equator-housekeeping-vol01-dev-pv
+    pvc_name: equator-housekeeping-vol01-dev-pvc
+    path_name: /equator_housekeeping-vol01_dev
+    size: 5Gi
+- ns: equator-default-dev
+  nfs:
+    pv_name: equator-reconciler-vol01-dev-pv
+    pvc_name: equator-reconciler-vol01-dev-pvc
+    path_name: /equator_reconciler-vol01_dev
+    size: 5Gi
+- ns: equator-default-performance
+  nfs:
+    pv_name: equator-dataexport-vol01-performance-pv
+    pvc_name: equator-dataexport-vol01-performance-pvc
+    path_name: /equator_dataexport-vol01_performance
+    size: 5Gi
+- ns: equator-default-performance
+  nfs:
+    pv_name: equator-housekeeping-vol01-performance-pv
+    pvc_name: equator-housekeeping-vol01-performance-pvc
+    path_name: /equator_housekeeping-vol01_performance
+    size: 5Gi
+- ns: equator-default-performance
+  nfs:
+    pv_name: equator-reconciler-vol01-performance-pv
+    pvc_name: equator-reconciler-vol01-performance-pvc
+    path_name: /equator_reconciler-vol01_performance
+    size: 5Gi
+- ns: equator-default-qa
+  nfs:
+    pv_name: equator-dataexport-vol01-qa-pv
+    pvc_name: equator-dataexport-vol01-qa-pvc
+    path_name: /equator_dataexport-vol01_qa
+    size: 5Gi
+- ns: equator-default-qa
+  nfs:
+    pv_name: equator-housekeeping-vol01-qa-pv
+    pvc_name: equator-housekeeping-vol01-qa-pvc
+    path_name: /equator_housekeeping-vol01_qa
+    size: 5Gi
+- ns: equator-default-qa
+  nfs:
+    pv_name: equator-reconciler-vol01-qa-pv
+    pvc_name: equator-reconciler-vol01-qa-pvc
+    path_name: /equator_reconciler-vol01_qa
+    size: 5Gi
+- ns: equator-default-staging
+  nfs:
+    pv_name: equator-dataexport-vol01-staging-pv
+    pvc_name: equator-dataexport-vol01-staging-pvc
+    path_name: /equator_dataexport-vol01_staging
+    size: 5Gi
+- ns: equator-default-staging
+  nfs:
+    pv_name: equator-housekeeping-vol01-staging-pv
+    pvc_name: equator-housekeeping-vol01-staging-pvc
+    path_name: /equator_housekeeping-vol01_staging
+    size: 5Gi
+- ns: equator-default-staging
+  nfs:
+    pv_name: equator-reconciler-vol01-staging-pv
+    pvc_name: equator-reconciler-vol01-staging-pvc
+    path_name: /equator_reconciler-vol01_staging
+    size: 5Gi
+- ns: equator-sandbox-dev
+  nfs:
+    pv_name: equator-sandbox-dataexport-vol01-dev-pv
+    pvc_name: equator-sandbox-dataexport-vol01-dev-pvc
+    path_name: /equator_sandbox_dataexport-vol01_dev
+    size: 5Gi
+- ns: equator-sandbox-dev
+  nfs:
+    pv_name: equator-sandbox-housekeeping-vol01-dev-pv
+    pvc_name: equator-sandbox-housekeeping-vol01-dev-pvc
+    path_name: /equator_sandbox_housekeeping-vol01_dev
+    size: 5Gi
+- ns: equator-sandbox-dev
+  nfs:
+    pv_name: equator-sandbox-reconciler-vol01-dev-pv
+    pvc_name: equator-sandbox-reconciler-vol01-dev-pvc
+    path_name: /equator_sandbox_reconciler-vol01_dev
+    size: 5Gi
+- ns: nano-cicd
+  nfs:
+    pv_name: pv-maven-repo-nano
+    pvc_name: jenkins-mvn-local-repo
+    path_name: /maven_repo_nano
+    size: 50Gi
+- ns: nano-cicd
+  nfs:
+    pv_name: pv-configuration-data-nano
+    pvc_name: pvc-configuration-data
+    path_name: /configuration_nano
+    size: 100Gi
+- ns: nano-cicd
+  nfs:
+    pv_name: pv-jenkins-home-nano
+    pvc_name: pvc-jenkins-home
+    path_name: /jenkins_home_nano
+    size: 30Gi
+- ns: nano-cicd
+  nfs:
+    pv_name: pv-jenkins-job-nano
+    pvc_name: pvc-jenkins-job
+    path_name: /jenkins_jobs_nano
+    size: 50Gi
+- ns: nano-cicd
+  nfs:
+    pv_name: pv-jenkins-jobs-nano
+    pvc_name: pvc-jenkins-jobs
+    path_name: /jenkins_jobs_nano
+    size: 50Gi
+- ns: nano-cicd
+  nfs:
+    pv_name: pv-jenkins-workspace-nano
+    pvc_name: pvc-jenkins-workspace
+    path_name: /jenkins_workspace_nano
+    size: 100Gi
+- ns: nano-creditpay-dev
+  nfs:
+    pv_name: nano-reconcile-vol01-dev-pv
+    pvc_name: nano-reconcile-vol01-dev-pvc
+    path_name: /nano_reconcile-vol01_dev
+    size: 1Gi
+- ns: nano-creditpay-performance
+  nfs:
+    pv_name: nano-reconcile-vol01-performance-pv
+    pvc_name: nano-reconcile-vol01-performance-pvc
+    path_name: /nano_reconcile-vol01_performance
+    size: 1Gi
+- ns: nano-creditpay-qa
+  nfs:
+    pv_name: nano-reconcile-vol01-qa-pv
+    pvc_name: nano-reconcile-vol01-qa-pvc
+    path_name: /nano_reconcile-vol01_qa
+    size: 1Gi
+- ns: nano-creditpay-staging
+  nfs:
+    pv_name: nano-reconcile-vol01-staging-pv
+    pvc_name: nano-reconcile-vol01-staging-pvc
+    path_name: /nano_reconcile-vol01_staging
+    size: 1Gi
+- ns: truemoney-cicd
+  nfs:
+    pv_name: pv-maven-repo-truemoney
+    pvc_name: jenkins-mvn-local-repo
+    path_name: /maven_repo_truemoney
+    size: 50Gi
+- ns: truemoney-cicd
+  nfs:
+    pv_name: pv-configuration-data-truemoney
+    pvc_name: pvc-configuration-data
+    path_name: /configuration_truemoney
+    size: 50Gi
+- ns: truemoney-cicd
+  nfs:
+    pv_name: pv-jenkins-home-truemoney
+    pvc_name: pvc-jenkins-home
+    path_name: /jenkins_home_truemoney
+    size: 30Gi
+- ns: truemoney-cicd
+  nfs:
+    pv_name: pv-jenkins-job-truemoney
+    pvc_name: pvc-jenkins-job
+    path_name: /jenkins_jobs_truemoney
+    size: 50Gi
+- ns: truemoney-cicd
+  nfs:
+    pv_name: pv-jenkins-workspace-truemoney
+    pvc_name: pvc-jenkins-workspace
+    path_name: /jenkins_workspace_truemoney
+    size: 100Gi
+- ns: nano-creditpay-dev
+  nfs:
+    pv_name: nano-truedevice-reconcile-vol01-dev-pv
+    pvc_name: nano-truedevice-reconcile-vol01-dev-pvc
+    path_name: /nano-truedevice-reconcile-dev
+    size: 1Gi
+- ns: nano-creditpay-performance
+  nfs:
+    pv_name: nano-truedevice-reconcile-vol01-performance-pv
+    pvc_name: nano-truedevice-reconcile-vol01-performance-pvc
+    path_name: /nano-truedevice-reconcile-performance
+    size: 1Gi
+- ns: nano-creditpay-qa
+  nfs:
+    pv_name: nano-truedevice-reconcile-vol01-qa-pv
+    pvc_name: nano-truedevice-reconcile-vol01-qa-pvc
+    path_name: /nano-truedevice-reconcile-qa
+    size: 1Gi
+- ns: nano-creditpay-staging
+  nfs:
+    pv_name: nano-truedevice-reconcile-vol01-staging-pv
+    pvc_name: nano-truedevice-reconcile-vol01-staging-pvc
+    path_name: /nano-truedevice-reconcile-staging
+    size: 1Gi
+- ns: equator-default-dev
+  nfs:
+    pv_name: equator-file-mgmt-dev-pv
+    pvc_name: equator-file-mgmt-dev-pvc
+    path_name: /equator_file_mgmt_dev
+    size: 2Gi 
+- ns: equator-default-qa
+  nfs:
+    pv_name: equator-file-mgmt-qa-pv
+    pvc_name: equator-file-mgmt-qa-pvc
+    path_name: /equator_file_mgmt_qa
+    size: 2Gi   
+- ns: equator-default-performance
+  nfs:
+    pv_name: equator-file-mgmt-performance-pv
+    pvc_name: equator-file-mgmt-performance-pvc
+    path_name: /equator_file_mgmt_performance
+    size: 2Gi   
+- ns: equator-default-staging
+  nfs:
+    pv_name: equator-file-mgmt-staging-pv
+    pvc_name: equator-file-mgmt-staging-pvc
+    path_name: /equator_file_mgmt_staging
+    size: 2Gi
+- ns: cachethq-cluster
+  nfs:
+    pv_name: cachethq-dbbackup-dev-pv
+    pvc_name: cachethq-dbbackup-dev-pvc
+    path_name: /cachethq_dbbackup_dev
+    size: 2Gi
+- ns: truemoney-product-dev 
+  nfs:
+    pv_name: truemoney-product-file-mgmt-dev-pv
+    pvc_name: truemoney-product-file-mgmt-dev-pvc
+    path_name: /truemoney_product_file_mgmt_dev
+    size: 1Gi
+- ns: truemoney-product-qa
+  nfs:
+    pv_name: truemoney-product-file-mgmt-qa-pv
+    pvc_name: truemoney-product-file-mgmt-qa-pvc
+    path_name: /truemoney_product_file_mgmt_qa
+    size: 1Gi
+- ns: truemoney-product-performance
+  nfs:
+    pv_name: truemoney-product-file-mgmt-performance-pv
+    pvc_name: truemoney-product-file-mgmt-performance-pvc
+    path_name: /truemoney_product_file_mgmt_performance
+    size: 1Gi
+- ns: truemoney-product-staging
+  nfs:
+    pv_name: truemoney-product-file-mgmt-staging-pv
+    pvc_name: truemoney-product-file-mgmt-staging-pvc
+    path_name: /truemoney_product_file_mgmt_staging
+    size: 1Gi    

@@ -1,0 +1,72 @@
+---
+
+### SET OPENSHIFT ROUTER PASSWORD
+- hosts: instance-openshift_master
+  roles:
+  - { role: openshift_monitoring/router-passwd }
+  
+  
+# setup instance prometheus system aggregate
+
+- hosts: instance-prometheus_sys_aggregate
+  become: yes
+  become_user: root
+  vars:
+    service_option: setup
+    homedir: /etc/prometheus
+    prometheus_job: "sys_aggregate"
+    instance_group: promtheus
+    targets:
+      node_exporter:
+        name: node_exporter
+        port: 9100
+        target_path: node_exporter.json
+      elasticsearch_exporter:
+        name: elasticsearch
+        port: 9108
+        target_path: elasticsearch.json
+  roles:
+    - { role: openshift_monitoring/prometheus-packages }
+    - { role: openshift_monitoring/prometheus-service, action: 'sys_aggregate' }
+
+
+# setup instance prometheus system data
+
+- hosts: instance-prometheus_sys_data
+  become: yes
+  become_user: root
+  vars:
+    homedir: /etc/prometheus
+    prometheus_job: "sys_data"
+    service_option: setup
+  roles:
+    - { role: openshift_monitoring/prometheus-packages }
+    - { role: openshift_monitoring/prometheus-service, action: 'sys_data' }
+
+
+# setup instance prometheus application aggregate
+
+- hosts: instance-prometheus_app_aggregate
+  become: yes
+  become_user: root
+  vars:
+    homedir: /etc/prometheus
+    prometheus_job: "app_aggregate"
+    service_option: setup
+  roles:
+    - { role: openshift_monitoring/prometheus-packages }
+    - { role: openshift_monitoring/prometheus-service, action: 'app_aggregate' }
+
+
+# setup instance prometheus application data
+
+- hosts: instance-prometheus_app_data
+  become: yes
+  become_user: root
+  vars:
+    homedir: /etc/prometheus
+    prometheus_job: "app_data"
+    service_option: setup
+  roles:
+    - { role: openshift_monitoring/prometheus-packages }
+    - { role: openshift_monitoring/prometheus-service, action: 'app_data' }

@@ -1,0 +1,2 @@
+- name: oc login 
+  raw: oc login -u {{ user }} -p {{ password }} -n default

@@ -1,0 +1,25 @@
+---
+
+# - hosts: redis-node,redis-sentinel
+#   become: yes
+#   become_user: root
+#   roles:
+#     - { role: install-redis-rpm }
+#   vars:
+#     redis_group: all
+
+# - hosts: redis-node
+#   become: yes
+#   become_user: root
+#   roles:
+#     - { role: install-redis-rpm }
+#   vars:
+#     redis_group: node
+
+- hosts: redis-sentinel
+  become: yes
+  become_user: root
+  roles:
+    - { role: install-redis-rpm }
+  vars:
+    redis_group: sentinel

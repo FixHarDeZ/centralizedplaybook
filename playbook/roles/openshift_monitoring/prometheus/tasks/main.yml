@@ -1,0 +1,16 @@
+---
+- name: CHECK PROMETHEUS SETUP STATE
+  shell: oc get pod -n monitoring | grep prometheus-dc
+  register: result
+  ignore_errors: true
+
+- name: 'TASK ALL'
+  include: ./install.yml
+  when: result.stdout == ""
+
+- name: 'CTRL UPDATE'
+  include: ./update.yml
+  when: action == "update"
+
+#- debug: var=pod_id.stdout_lines[1]
+#- debug: var=result2

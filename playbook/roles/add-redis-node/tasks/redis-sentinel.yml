@@ -1,0 +1,40 @@
+---
+- name: "Stop redis-sentinel"
+  systemd:
+    name: "redis-sentinel.service"
+    state: stopped
+
+- name: Add config for new node
+  lineinfile:
+    path: /etc/redis-sentinel.conf
+    regexp: "^sentinel {{item.option}} {{project_name}}-{{project_env}}"
+    line: "sentinel {{item.option}} {{project_name}}-{{project_env}} {{item.value}}"
+  with_items: 
+    - { option: "monitor", value: "{{redis_master}} {{project_port}} 2" }
+    - { option: "down-after-milliseconds", value: "5000" }
+    - { option: "failover-timeout", value: "10000" }
+    - { option: "parallel-syncs", value: "3" }
+    - { option: "auth-pass", value: "{{project_pass}}" }
+
+- name: "Change file sentinel config #01"
+  lineinfile:
+    path: /etc/redis-sentinel.conf
+    line: "sentinel known-replica {{project_name}}-{{project_env}} {{item.redis_ip}} {{project_port}}"
+  loop: "{{redis_node_list}}"
+
+- name: "Get current sentinel id"
+  raw: cat /etc/redis-sentinel.conf| grep -i myid | awk '{print $3}'
+  register: current_id
+
+- name: "Change file sentinel config #02"
+  lineinfile:
+    path: /etc/redis-sentinel.conf
+    line: "sentinel known-sentinel {{project_name}}-{{project_env}} {{item.sentinel_ip}} 26379 {{item.sentinel_id}}"
+  when: current_id.stdout_lines[0] != item.sentinel_id
+  loop: "{{sentinel_list}}"
+
+- name: "Start redis-sentinel"
+  systemd:
+    name: "redis-sentinel.service"
+    state: restarted
+    enabled: yes

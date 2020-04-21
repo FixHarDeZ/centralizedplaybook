@@ -1,0 +1,5 @@
+---
+# setup instance Alertmanager
+- hosts: awx
+  roles:
+    - { role: openshift_monitoring/grafana-import-ignore}

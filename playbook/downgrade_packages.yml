@@ -1,0 +1,7 @@
+---
+# setup instance Alertmanager
+- hosts: all
+  become: yes
+  become_user: root
+  roles:
+    - { role: downgrade_packages}

@@ -1,0 +1,44 @@
+---
+#- name: 'REMOVE HOMEDIR'
+#  file:
+#    dest: "{{vars.homedir}}/targets"
+#    state: absent
+
+#- name: 'CRATE HOMEDIR RULES'
+#  file:
+#    path: "{{vars.homedir}}/rules"
+#    state: directory
+#    owner: prometheus
+#    group: prometheus
+
+- name: 'DEPLOY PROMETHEUS CONFIG'
+  template:
+    src: "app_aggregate/prometheus.j2"
+    dest: "{{vars.homedir}}/prometheus.yml"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+
+
+- name: 'DEPLOY PROMETHEUS OPTIONS'
+  copy: 
+    src: "files/app_aggregate/prometheus.opt" 
+    dest: "/etc/default/prometheus"
+    owner: prometheus
+    group: prometheus
+    mode: 0755
+
+
+#- name: 'DEPLOY PROMETHEUS RULES'
+#  copy: 
+#    src: "files/app_aggregate/rules" 
+#    dest: "{{homedir}}/"
+#    owner: prometheus
+#    group: prometheus
+#    mode: 0755
+
+- name: 'RESTART SERVICE PROMETHEUS'
+  #service:  name=prometheus state=reloaded
+  uri:
+    url: http://localhost:9090/-/reload
+    method: POST

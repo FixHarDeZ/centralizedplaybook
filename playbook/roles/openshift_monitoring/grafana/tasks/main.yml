@@ -1,0 +1,35 @@
+#- name: yum install
+#  yum:
+#    name: "{{ yum_rmp }}"
+#    state: present
+
+- name: copy file package grafana
+  copy:
+    src: grafana-5.0.4-1.x86_64.rpm
+    dest: /tmp/grafana-5.0.4-1.x86_64.rpm
+    
+- name: run rpm
+  yum:
+    name: /tmp/grafana-5.0.4-1.x86_64.rpm
+    state: present
+
+   
+- name: enable grafana
+  systemd:
+    name: grafana-server
+    state: started
+    enabled: True
+    
+#- name: Create data source
+#  uri:
+#    url: http://{{ vars.groups['instance-grafana'][0] }}:3000/api/datasources/
+#    headers:
+#      Content-Type: "application/json;charset=UTF-8"
+#    method: POST
+#    user: admin
+#    password: admin
+#    body: '{"name":"{{hostvars[groups[item][0]].instance_hostname}}","type":"prometheus","url":"http://{{groups[item][0]}}:9090/","access":"proxy","isDefault":true}'
+#    force_basic_auth: yes
+#    body_format: json
+#  with_items:
+#    - "instance-prometheus_sys_data"

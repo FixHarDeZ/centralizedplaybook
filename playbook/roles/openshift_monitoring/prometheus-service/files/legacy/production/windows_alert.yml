@@ -1,0 +1,72 @@
+groups:
+- name: windows_alert
+  rules:  
+  #- alert: instance_windows_cpu_warning
+  #  expr:  up == 0
+  #  for: 1m
+  #  labels:
+  #    severity: warning
+  #    owner: sys
+  # annotations:
+  #    summary: "instance windows agent down > 0"
+  #    description: "{{$labels.instance}}  agent down  "
+
+  - alert: instance_windows_cpu_warning
+    expr:  100 - (avg by (instance) (irate(wmi_cpu_time_total{mode="idle"}[5m])) * 100) > 80 and 100 - (avg by (instance) (irate(wmi_cpu_time_total{mode="idle"}[5m])) * 100) <= 90
+    for: 30s
+    labels:
+      severity: warning
+      owner: sys
+    annotations:
+      summary: "instance windows cpu warning usage > 80%"
+      description: "{{$labels.instance}} instance cpu usage {{$value}}%"
+      
+  - alert: instance_windows_cpu_critical
+    expr: 100 - (avg by (instance) (irate(wmi_cpu_time_total{mode="idle"}[5m])) * 100) > 90
+    for: 30s
+    labels:
+      severity: critical
+      owner: sys
+    annotations:
+      summary: "instance windows cpu critical usage > 90%"
+      description: "{{$labels.instance}} instance cpu usage {{$value}}%"
+      
+  - alert: instance_windows_disk_warning
+    expr:  100 - (wmi_logical_disk_free_bytes{volume !~"HarddiskVolume.+"} / wmi_logical_disk_size_bytes{volume !~"HarddiskVolume.+"} * 100) > 80 and 100 - (wmi_logical_disk_free_bytes{volume !~"HarddiskVolume.+"} / wmi_logical_disk_size_bytes{volume !~"HarddiskVolume.+"} * 100) <= 90
+    for: 30s
+    labels:
+      severity: warning
+      owner: sys
+    annotations:
+      summary: "instance windows disk warning usage > 80%"
+      description: "{{$labels.instance}} instance disk usage {{$value}}%"
+      
+  - alert: instance_windows_disk_critical
+    expr: 100 - (wmi_logical_disk_free_bytes{volume !~"HarddiskVolume.+"} / wmi_logical_disk_size_bytes{volume !~"HarddiskVolume.+"} * 100) > 90
+    for: 30s
+    labels:
+      severity: critical
+      owner: sys
+    annotations:
+      summary: "instance windows disk critical usage > 90%"
+      description: "{{$labels.instance}} instance disk usage {{$value}}%"
+      
+  - alert: instance_windows_memory_warning
+    expr: (wmi_cs_physical_memory_bytes - (wmi_os_physical_memory_free_bytes) ) / (wmi_cs_physical_memory_bytes) * 100 > 85 and (wmi_cs_physical_memory_bytes - (wmi_os_physical_memory_free_bytes) ) / (wmi_cs_physical_memory_bytes) * 100 <= 90
+    for: 30s
+    labels:
+      severity: warning
+      owner: sys
+    annotations:
+      summary: "instance windows memory usage > 85%"
+      description: "{{$labels.instance}} instance memory usage {{$value}}%"
+
+  - alert: instance_windows_memory_critical 
+    expr: (wmi_cs_physical_memory_bytes - (wmi_os_physical_memory_free_bytes) ) / (wmi_cs_physical_memory_bytes) * 100 > 90
+    for: 30s
+    labels:
+      severity: critical
+      owner: sys
+    annotations:
+      summary: "instance windows memory usage > 90%"
+      description: "{{$labels.instance}} instance memory usage {{$value}}%"

@@ -1,0 +1,8 @@
+groups:
+- name: default
+  rules:
+  - alert: federate_down
+    expr: up{job='federate_system_aggregate'} == 0
+    annotations:
+      summary: "Promtheus Federate has down"
+      description: "{{$labels.instance}} agent down"

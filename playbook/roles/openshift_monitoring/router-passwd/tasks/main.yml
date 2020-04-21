@@ -1,0 +1,11 @@
+---
+- name: 'SAVE ROUTER PASSWD'
+  include: ./save.yml
+  when: action is undefined 
+  ignore_errors: true
+
+- name: 'REMOVE ROUTER PASSWD'
+  include_tasks: ./{{action}}.yml
+  when: action is defined
+
+#- debug: var="{{inventory_dir}}/{{vars.vars.passwd_path}}"

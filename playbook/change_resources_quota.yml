@@ -1,0 +1,19 @@
+---
+- name: Adjust_resources_quota
+  hosts: instance-openshift_master
+  become: yes
+  become_user: root
+  tasks:
+
+    - name: Oc login
+      shell: oc login -u system:admin -n default
+      
+    - name: TEMPLATE update-quota.sh
+      template:
+        src: 'roles/create_resources_quota/templates/update-quota.sh.j2'
+        dest: /tmp/apply-ocquota-individual.sh
+        mode: "u=rwx"
+
+    - name: Adjust new Quota
+      shell: /tmp/apply-ocquota-individual.sh
+

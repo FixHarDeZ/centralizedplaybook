@@ -1,0 +1,12 @@
+---
+- hosts: instance-prometheus_lecagy
+  tasks:
+    - name: test
+      debug:
+        msg: "123"
+  #    with_items: "{{groups['promcfg-targets-node_exporter']}}"
+  #    
+  #  - name: test1
+  #    debug:
+  #      msg: "{{hostvars[item].inventory_hostname}} -- {{hostvars[item].instance_hostname}}"
+  #    with_items: "{{groups['instance-elasticsearch']}}"

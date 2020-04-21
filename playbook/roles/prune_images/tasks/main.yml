@@ -1,0 +1,9 @@
+---
+- name: Oc login
+  shell: oc login -u system:admin -n default
+  
+- name: Prune Builds
+  shell: oc adm prune builds --orphans --keep-younger-than={{ keepyounger }}h --confirm
+  
+- name: Prune Images
+  shell: oc adm prune images --keep-tag-revisions=0 --keep-younger-than={{ keepyounger }}h --confirm

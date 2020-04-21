@@ -1,0 +1,186 @@
+#!/bin/bash
+
+# =================== Varibale Declaration ==================
+APP_SCOPE="{{ item.APP_SCOPE }}"
+SVC_GROUP="{{ item.SVC_GROUP }}"
+ENV="{{ item.ENV }}"
+{% if item.ENV != '' %}
+ENV="-{{ item.ENV }}"
+ENV_LABEL="envName={{ item.ENV }}"
+{% endif %}
+if [[ ${APP_SCOPE} == "unknown" ]]; then
+    echo "Sorry, Please set project scope name variable such as truemoney, equator etc."
+    exit
+fi
+
+if [[ ${SVC_GROUP} == "unknown" ]]; then
+    echo "Sorry, Please set service group name variable"
+    exit
+fi
+# ===========================================================
+
+# Create the projects
+oc new-project ${APP_SCOPE}-${SVC_GROUP}${ENV}
+
+
+# Set the label for each project
+oc label namespace ${APP_SCOPE}-${SVC_GROUP}${ENV} openshift-project=${APP_SCOPE}-${SVC_GROUP}${ENV} ${ENV_LABEL} provider=openshift-cicd-platform openshift-project-scope=${APP_SCOPE} --overwrite
+
+{% if item.CPU != '' and item.MEMMORY != '' %}
+# Openshift Resoure allocation
+cat <<EOF > /tmp/non_prod-ocp-resource-allocation${ENV}.yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-resources
+  namespace: ${APP_SCOPE}-${SVC_GROUP}${ENV}
+spec:
+  hard:
+    limits.cpu: {{ item.CPU }}m
+    limits.memory: {{ item.MEMMORY }}
+  scopes:
+  - NotTerminating
+EOF
+
+oc apply -f /tmp/non_prod-ocp-resource-allocation${ENV}.yaml -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+{% endif %}
+
+# Openshift Network Policy Creation ==========================
+cat <<EOF > /tmp/default-deny-all-network-policy.yaml
+kind: NetworkPolicy
+apiVersion: extensions/v1beta1
+metadata:
+  name: default-deny
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+EOF
+
+cat <<EOF > /tmp/allow-traffic-from-common-cicd-platform.yaml
+kind: NetworkPolicy
+apiVersion: extensions/v1beta1
+metadata:
+  name: allow-traffic-from-common-cicd-platform
+spec:
+  podSelector:
+    matchLabels:
+      svcGroup: ${SVC_GROUP}
+  ingress:
+  - from: 
+    - namespaceSelector:
+        matchLabels:
+          envName: common
+EOF
+
+cat <<EOF > /tmp/allow-traffic-from-cicd.yaml
+kind: NetworkPolicy
+apiVersion: extensions/v1beta1
+metadata:
+  name: allow-traffic-from-cicd
+spec:
+  podSelector:
+    matchLabels:
+      svcGroup: ${SVC_GROUP}
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          envName: openshift-cicd
+          openshift-project: ${APP_SCOPE}-cicd
+EOF
+
+oc create -f /tmp/default-deny-all-network-policy.yaml -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+oc create -f /tmp/allow-traffic-from-common-cicd-platform.yaml -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+oc create -f /tmp/allow-traffic-from-cicd.yaml -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+
+{% if item.ENV == 'dev' %}
+cat <<EOF > /tmp/allow-all-traffic-to-mountebank.yaml
+kind: NetworkPolicy
+apiVersion: extensions/v1beta1
+metadata:
+  name: allow-all-traffic-to-mountebank
+spec:
+  podSelector:
+    matchLabels:
+      isMountebank: 'true'
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchExpressions:
+          - key: envName
+            operator: In
+            values:
+              - default
+              - dev
+              - qa
+              - performance
+              - staging
+EOF
+oc create -f /tmp/allow-all-traffic-to-mountebank.yaml -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+{% elif item.ENV == 'production' %}
+cat <<EOF > /tmp/allow-all-traffic-to-mountebank.yaml
+kind: NetworkPolicy
+apiVersion: extensions/v1beta1
+metadata:
+  name: allow-all-traffic-to-mountebank
+spec:
+  podSelector:
+    matchLabels:
+      isMountebank: 'true'
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchExpressions:
+          - key: envName
+            operator: In
+            values:
+              - production
+EOF
+oc create -f /tmp/allow-all-traffic-to-mountebank.yaml -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+{% endif %}
+
+# Service Account Creation ==========================
+# Create SA
+oc create sa acm-deployer -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+
+# Permission Granting ===============================
+oc policy add-role-to-user edit system:serviceaccount:${APP_SCOPE}-cicd:jenkins -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+
+# Permission Granting ===============================
+# Granting Role to Jenkins SA
+oc policy add-role-to-user jenkins-network-policy-admin system:serviceaccount:${APP_SCOPE}-cicd:jenkins -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+
+# Granting Role to openshift-cicd-console SA
+oc policy add-role-to-user view system:serviceaccount:common-cicd-platform:openshift-cicd-console -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+
+oc policy add-role-to-user system:image-pruner system:serviceaccount:common-cicd-platform:openshift-cicd-console -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+
+# Grant roles to another groups
+oc policy add-role-to-group view ocp-devops-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+
+{% if item.ENV == '' %}
+oc policy add-role-to-group edit ocp-developer-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+oc policy add-role-to-group view ocp-qa-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+{% elif item.ENV == 'dev' %}
+oc policy add-role-to-group edit ocp-developer-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+oc policy add-role-to-group view ocp-qa-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+{% elif item.ENV == 'qa' %}
+oc policy add-role-to-group view ocp-developer-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+oc policy add-role-to-group edit ocp-qa-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+{% elif item.ENV == 'performance' %}
+oc policy add-role-to-group view ocp-developer-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+oc policy add-role-to-group edit ocp-qa-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+oc policy add-role-to-group view ocp-sd-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+{% elif item.ENV == 'staging' %}
+oc policy add-role-to-group view ocp-developer-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+oc policy add-role-to-group view ocp-qa-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+oc policy add-role-to-group view ocp-sd-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+{% elif item.ENV == 'production' %}
+oc policy add-role-to-group view ocp-developer-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+oc policy add-role-to-group view ocp-qa-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+oc policy add-role-to-group edit ocp-sd-${APP_SCOPE} -n ${APP_SCOPE}-${SVC_GROUP}${ENV}
+{% endif %}
+
+# Grant Image Puller to acm-deployer from cicd project
+oc policy add-role-to-user system:image-puller system:serviceaccount:${APP_SCOPE}-${SVC_GROUP}${ENV}:acm-deployer -n ${APP_SCOPE}-cicd

@@ -1,0 +1,103 @@
+---
+- hosts: all
+  serial: 1
+  become: yes
+  become_user: root
+  tasks:
+#  vars:
+
+  - name: before update - remove old repository file under /etc/yum.repos.d
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - "/etc/yum.repos.d/CentOS-Vault.repo"
+      - "/etc/yum.repos.d/CentOS-Sources.repo"
+      - "/etc/yum.repos.d/CentOS-Media.repo"
+      - "/etc/yum.repos.d/CentOS-fasttrack.repo"
+      - "/etc/yum.repos.d/CentOS-Debuginfo.repo"
+      - "/etc/yum.repos.d/CentOS-CR.repo"
+      - "/etc/yum.repos.d/CentOS-Base.repo"
+      - "/etc/yum.repos.d/epel-testing.repo"
+      - "/etc/yum.repos.d/epel.repo"
+
+  - name: clean yum repository
+    raw: "yum clean all"
+    ignore_errors: true
+
+  - name: clean yum cache
+    raw: "rm -rf /var/cache/yum"
+    ignore_errors: true
+
+  - name: persist iptables config before reboot
+    raw: "/sbin/iptables-save > /etc/sysconfig/iptables"
+    ignore_errors: true
+
+  - name: install iptables-services
+    yum:
+       name: 'iptables-services'
+       state: present
+
+  - name: enable iptables service
+    systemd:
+      name: iptables.service
+      enabled: yes
+      state: started
+
+  - name: update package the lastest version
+    yum:
+      name: '*'
+      state: latest
+      exclude: "logstash*, rabbitmq-server*, erlang*, elasticsearch*, graylog-server*, mongodb*"
+      disable_gpg_check: yes
+      #disablerepo: "AscendMoney_mysql-5_7-community_MySQL_5_7_RPM_EL7_x86_64,AscendMoney_Mongodb_Mongodb_4_0_RPM_RHEL7_x86_64,AscendMoney_Mongodb_Mongodb_3_7_RPM_RHEL7_x86_64"
+    register: status_patch
+
+  - name: after update - remove old repository file under /etc/yum.repos.d
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - "/etc/yum.repos.d/CentOS-Vault.repo"
+      - "/etc/yum.repos.d/CentOS-Sources.repo"
+      - "/etc/yum.repos.d/CentOS-Media.repo"
+      - "/etc/yum.repos.d/CentOS-fasttrack.repo"
+      - "/etc/yum.repos.d/CentOS-Debuginfo.repo"
+      - "/etc/yum.repos.d/CentOS-CR.repo"
+      - "/etc/yum.repos.d/CentOS-Base.repo"
+      - "/etc/yum.repos.d/epel-testing.repo"
+      - "/etc/yum.repos.d/epel.repo"
+
+#  - name: Restart server
+#    command: /sbin/shutdown -r
+#    when: status_patch.changed
+#    async: 0
+#    poll: 0
+#    ignore_errors: true
+#
+#  - name: Delay for reboot
+#    pause:
+#       minutes: 1
+#    delegate_to: localhost
+#    when: status_patch.changed
+
+#  - name: waiting for reboot server
+#    wait_for:
+#      host: "{{ inventory_hostname }}"
+#      connect_timeout: 20
+#      port: 22
+#      sleep: 20
+#      delay: 30
+#      timeout: 90
+#    become: false
+#    delegate_to: localhost
+#    when: status_patch.changed
+
+  - name: Reboot machine that might have lots of updates to apply
+    reboot:
+    when: status_patch.changed
+#      reboot_timeout: 10 
+#      connect_timeout: 1
+#      post_reboot_delay: 5
+#      test_command: whoami
+

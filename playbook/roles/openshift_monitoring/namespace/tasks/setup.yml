@@ -1,0 +1,22 @@
+- name: Oc login
+  shell: oc login -u system:admin -n default
+  
+- name: 'CHECK NAMESPACE'
+  command:  oc get ns monitoring
+  register: runstate
+
+- name: 'SETUP NAMESPACE'
+  command: oc new-project monitoring  --display-name="Prometheus Monitoring"
+  when: runstate.stderr != ""
+
+- name: 'SETUP SERVICE ACCOUNT'
+  command: oc adm policy add-scc-to-user hostaccess system:serviceaccount:monitoring:default
+  when: runstate.stderr != ""
+
+- name: 'GRANT SECURITY CLUSTER-READER'
+  command: oc adm policy add-cluster-role-to-user cluster-reader system:serviceaccount:monitoring:default
+  when: runstate.stderr != ""
+
+
+
+#- debug: var=runstate

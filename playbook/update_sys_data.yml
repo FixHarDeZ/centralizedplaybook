@@ -1,0 +1,12 @@
+---
+# setup instance prometheus system data
+
+- hosts: instance-prometheus_sys_data
+  become: yes
+  become_user: root
+  vars:
+    homedir: /etc/prometheus
+    prometheus_job: "sys_data"
+    service_option: setup
+  roles:
+    - { role: openshift_monitoring/prometheus-service , action: 'sys_data' }

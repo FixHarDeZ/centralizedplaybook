@@ -1,0 +1,7 @@
+---
+# setup instance Alertmanager
+- hosts: instance-alertmanager
+  become: yes
+  become_user: root
+  roles:
+    - { role: openshift_monitoring/alertmanager, action: 'update'}

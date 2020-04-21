@@ -1,0 +1,10 @@
+---
+cluster:
+  - { cluster_name: 'mp', cluster_ip: '10.12.24.101'}
+  - { cluster_name: 'mp', cluster_ip: '10.12.24.102'}
+  - { cluster_name: 'mp', cluster_ip: '10.12.24.103'}
+  - { cluster_name: 'mp', cluster_ip: '10.12.24.104'}
+  - { cluster_name: 'mp1', cluster_ip: '10.12.24.106'}
+  - { cluster_name: 'mp1', cluster_ip: '10.12.24.107'}
+  - { cluster_name: 'mp1', cluster_ip: '10.12.24.108'}
+  - { cluster_name: 'mp1', cluster_ip: '10.12.24.109'}

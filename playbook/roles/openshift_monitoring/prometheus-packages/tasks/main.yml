@@ -1,0 +1,3 @@
+---
+#- include: setup-repositories.yml
+- include: setup-packages.yml package_name=prometheus2

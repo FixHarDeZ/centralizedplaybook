@@ -1,0 +1,7 @@
+---
+# setup instance elasticsearch_exporter
+- hosts: instance-elasticsearch
+  become: yes
+  become_user: root
+  roles:
+    - { role: openshift_monitoring/elasticsearch_exporter }

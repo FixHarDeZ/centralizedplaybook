@@ -1,0 +1,33 @@
+---
+- name: Include files in vars
+  include_vars:
+    file: 'vars/{{ env_cluster }}.yml'
+    
+- name: Enable alert
+  delegate_to: "{{ item.cluster_ip }}"
+  lineinfile: 
+      dest: /etc/prometheus/prometheus.yml
+      regexp: "{{vars.groups['instance-alertmanager'][0]}}:9093"
+      line: "      - '{{vars.groups['instance-alertmanager'][0]}}:9093'"
+  when: '"{{ item.cluster_name }}" == use_alert'
+  with_items:
+    - "{{ cluster }}"
+    
+- name: Disable alert
+  delegate_to: "{{ item.cluster_ip }}"
+  lineinfile: 
+      dest: /etc/prometheus/prometheus.yml
+      regexp: "{{vars.groups['instance-alertmanager'][0]}}:9093"
+      line: "      #- '{{vars.groups['instance-alertmanager'][0]}}:9093'"
+  when: '"{{ item.cluster_name }}" != use_alert'
+  with_items:
+    - "{{ cluster }}"
+    
+- name: 'RESTART SERVICE PROMETHEUS'
+  #service:  name=prometheus state=reloaded
+  delegate_to: "{{ item.cluster_ip }}"
+  uri:
+    url: http://localhost:9090/-/reload
+    method: POST
+  with_items:
+    - "{{ cluster }}"

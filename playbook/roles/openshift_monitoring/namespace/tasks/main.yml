@@ -1,0 +1,12 @@
+---
+- name: 'ACTION SETUP{{action}}'
+  include: ./setup.yml
+  when: action is undefined
+  ignore_errors: true
+
+- name: 'ACTION {{action}}'
+  include: ./{{action}}.yml
+  when: action is defined
+
+
+#- debug: msg=result 

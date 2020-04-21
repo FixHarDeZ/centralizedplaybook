@@ -1,0 +1,17 @@
+---
+
+project_env: "dev"
+project_name: "test"
+project_port: 6390
+project_pass: "ab123"
+
+sentinel_list:
+  - { sentinel_id: "", sentinel_ip: "10.14.24.141" }
+  - { sentinel_id: "", sentinel_ip: "10.14.24.142" }
+  - { sentinel_id: "", sentinel_ip: "10.14.24.143" }
+
+redis_master: "10.14.24.144"
+redis_node_list:
+  - { redis_ip: "10.14.24.145" }
+  - { redis_ip: "10.14.24.146" }
+

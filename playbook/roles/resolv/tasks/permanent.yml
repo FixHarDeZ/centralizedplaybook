@@ -1,0 +1,67 @@
+---
+
+- raw: yum clean all
+
+- yum:
+    name: "{{ item.name }}"
+    state: latest
+  with_items:
+    - { name: "NetworkManager" }
+    - { name: "NetworkManager-glib" }
+    - { name: "python-gobject" }
+    - { name: "systemd-sysv" }
+    - { name: "systemd-libs" }
+    - { name: "systemd" }
+  when:
+    - ansible_distribution_major_version == "7"
+
+- name: set dns for ocp
+  nmcli:
+    conn_name: eth0
+    type: ethernet
+    dns4: 
+      - "{{ dns1 }}"
+      - "{{ dns2 }}"
+    dns4_search:
+      - "{{ search_domain2 }}"
+      - "{{ search_domain }}"
+    state: present
+  when:
+    - is_ocp == True
+    - ansible_distribution_major_version == "7"
+  notify:
+    - restart_dnsmasq
+
+- name: set dns for non-ocp
+  nmcli:
+    conn_name: eth0
+    type: ethernet
+    dns4: 
+      - "{{ dns1 }}"
+      - "{{ dns2 }}"
+    dns4_search:
+      - "{{ search_domain }}"
+    state: present
+  when:
+    - is_ocp == False
+    - ansible_distribution_major_version == "7"
+
+- name: replace resolv.conf for ocp
+  template:
+    src: resolv_ocp.conf.j2
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: 0644
+  when:
+    - is_ocp == True
+
+- name: replace resolv.conf for non-ocp
+  template:
+    src: resolv_non_ocp.conf.j2
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: 0644
+  when:
+    - is_ocp == False

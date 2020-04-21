@@ -1,0 +1,38 @@
+---
+- name: set timezone
+  timezone:
+    name: "{{ my_timezone }}"
+
+- name: Unset default ntp server
+  lineinfile:
+    path: /etc/chrony.conf
+    regexp: "^server .*"
+    state: absent
+
+- name: Set interlnal ntp server
+  lineinfile:
+    path: /etc/chrony.conf
+    line: "server {{ item }}"
+    insertbefore: BOF
+  with_items: "{{ ntp_sources }}"
+
+- name: configure chronyd centos7
+  systemd:
+    name: chronyd
+    enabled: yes
+    state: restarted
+  when: 
+    - ansible_distribution == "CentOS"
+    - ansible_distribution_major_version == "7"
+
+- name: configure chronyd centos6
+  service:
+    name: chronyd
+    enabled: yes
+    state: restarted
+  when: 
+    - ansible_distribution == "CentOS"
+    - ansible_distribution_major_version == "6"
+
+- name: Initial chronyd 
+  raw: chronyc -a makestep

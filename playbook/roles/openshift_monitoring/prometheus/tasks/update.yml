@@ -1,0 +1,18 @@
+---
+- name: 'CLONE DEPLOYMENT FILE '
+  template:
+    src: 'files/prometheus-config.yml'
+    dest: '/tmp/prometheus-config.yml'
+
+- name: 'OC REPLACE CONFIG'
+  command: oc replace -f  /tmp/prometheus-config.yml
+  ignore_errors: true
+
+- name: 'OC UPDATE POD'
+  command: oc rollout latest prometheus-dc -n monitoring
+  ignore_errors: true
+
+- name: 'DELETE DEPLOYMENT FILE'
+  file:
+    dest: '/tmp/prometheus-config.yml'
+    state: absent

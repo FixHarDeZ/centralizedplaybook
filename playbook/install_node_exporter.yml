@@ -1,0 +1,6 @@
+---
+- hosts: promcfg-targets-node_exporter
+  become: yes
+  become_user: root
+  roles:
+    - { role: openshift_monitoring/node-exporter }

@@ -1,0 +1,151 @@
+---
+- name: 'REMOVE HOMEDIR'
+  file:
+    dest: "{{vars.homedir}}/targets"
+    state: absent
+
+- name: 'CRATE HOMEDIR TARGETS'
+  file:
+    path: "{{vars.homedir}}/targets"
+    state: directory
+    owner: prometheus
+    group: prometheus
+
+#- name: 'CRATE HOMEDIR RULES'
+#  file:
+#    path: "{{vars.homedir}}/rules"
+#    state: directory
+#    owner: prometheus
+#    group: prometheus
+
+- name: 'Prometheus Config Main: {{vars.prometheus_type}}'
+  template:
+    src: "sys_aggregate/prometheus.j2"
+    dest: "{{vars.homedir}}/prometheus.yml"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+
+
+- name: 'Prometheus Config Options: {{vars.prometheus_type}}'
+  copy: 
+    src: "files/sys_aggregate/prometheus.opt" 
+    dest: "/etc/default/prometheus"
+    owner: prometheus
+    group: prometheus
+    mode: 0755
+
+
+#- name: 'DEPLOY PROMETHEUS RULES'
+#  copy: 
+#    src: "files/sys_aggregate/rules" 
+#    dest: "{{homedir}}/"
+#    owner: prometheus
+#    group: prometheus
+#    mode: 0755
+
+
+- name: 'INIT VAR ARRAY INSTANCE'
+  set_fact:
+#    mycfg1: []
+#    mycfg2: []
+    ha1: []
+    ha2: []
+    ha3: []
+    ha4: []
+
+#- name: 'SET TARGET ARRAY FOR node_exporter'
+#  set_fact:
+#    mycfg1: '{{mycfg1}} + [ {"targets":["{{hostvars[item].inventory_hostname}}:{{hostvars[item].port_node}}"],"labels":{"instance_hostname":"{{hostvars[item].instance_hostname}}","instance_group":"{{hostvars[item].instance_group}}"}} ]'
+#  with_items: "{{groups['promcfg-targets-node_exporter']}}"
+
+
+#- name: 'SET TARGET ARRAY FOR elasticsearch'
+#  set_fact:
+#    mycfg2: '{{mycfg2}} + [ {"targets":["{{hostvars[item].inventory_hostname}}:{{vars.vars.targets["els"].port}}"],"labels":{"instance_hostname":"{{hostvars[item].instance_hostname}}"}} ]'
+#  with_items: "{{groups['instance-elasticsearch']}}"
+
+
+- name: 'SET TARGET ARRAY FOR OPENSHIFT ROUTE PUBLIC'
+  set_fact:
+    ha1: '{{ha1}} + [ {"targets":["{{hostvars[item].inventory_hostname}}:{{vars.vars.targets["ha"].port}}"],"labels":{"instance_hostname":"{{hostvars[item].instance_hostname}}"}} ]'
+  with_items: "{{groups['instance-openshift-route-public']}}"
+
+
+- name: 'SET TARGET ARRAY FOR OPENSHIFT ROUTE PARTNER'
+  set_fact:
+    ha2: '{{ha2}} + [ {"targets":["{{hostvars[item].inventory_hostname}}:{{vars.vars.targets["ha"].port}}"],"labels":{"instance_hostname":"{{hostvars[item].instance_hostname}}"}} ]'
+  with_items: "{{groups['instance-openshift-route-partner']}}"
+
+- name: 'SET TARGET ARRAY FOR OPENSHIFT ROUTE PRIVATE'
+  set_fact:
+    ha3: '{{ha3}} + [ {"targets":["{{hostvars[item].inventory_hostname}}:{{vars.vars.targets["ha"].port}}"],"labels":{"instance_hostname":"{{hostvars[item].instance_hostname}}"}} ]'
+  with_items: "{{groups['instance-openshift-route-private']}}"
+
+- name: 'SET TARGET ARRAY FOR OPENSHIFT ROUTE GENERAL'
+  set_fact:
+    ha4: '{{ha4}} + [ {"targets":["{{hostvars[item].inventory_hostname}}:{{vars.vars.targets["ha"].port}}"],"labels":{"instance_hostname":"{{hostvars[item].instance_hostname}}"}} ]'
+  with_items: "{{groups['instance-openshift-route-general']}}"
+
+
+
+#- name: 'DEPLOY PROMETHEUS TARGET FILE node_exporter'
+#  copy: 
+#   content: "{{ mycfg1 | to_json}}" 
+#    dest: "{{vars.homedir}}/targets/node_exporter.json"
+#    owner: prometheus
+#    group: prometheus
+#    mode: 0644
+
+#- name: 'DEPLOY PROMETHEUS TARGET FILE elasticsearch'
+#  copy: 
+#    content: "{{ mycfg2 | to_json}}" 
+#    dest: "{{vars.homedir}}/targets/elasticsearch.json"
+#    owner: prometheus
+#    group: prometheus
+#    mode: 0644
+
+- name: 'DEPLOY PROMETHEUS TARGET FILE Openshift Route Public'
+  copy: 
+    content: "{{ ha1 | to_json}}" 
+    dest: "{{vars.homedir}}/targets/oc_route_public.json"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+
+- name: 'DEPLOY PROMETHEUS TARGET FILE Openshift Route Partner'
+  copy: 
+    content: "{{ ha2 | to_json}}" 
+    dest: "{{vars.homedir}}/targets/oc_route_partner.json"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+
+
+- name: 'DEPLOY PROMETHEUS TARGET FILE Openshift Route Private'
+  copy: 
+    content: "{{ ha3 | to_json}}" 
+    dest: "{{vars.homedir}}/targets/oc_route_private.json"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+
+
+- name: 'DEPLOY PROMETHEUS TARGET FILE Openshift Route General'
+  copy: 
+    content: "{{ ha4 | to_json}}" 
+    dest: "{{vars.homedir}}/targets/oc_route_general.json"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+
+- name: 'RESTART SERVICE PROMETHEUS'
+  #service:  name=prometheus state=reloaded
+  uri:
+    url: http://localhost:9090/-/reload
+    method: POST
+
+ 
+  
+#- debug: var=vars.openshift_router_passwd
+#- debug: var=mytar.ha.arr

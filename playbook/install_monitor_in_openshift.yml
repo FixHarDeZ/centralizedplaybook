@@ -1,0 +1,15 @@
+---
+- hosts: instance-openshift_master
+  become: yes
+  become_user: root
+  roles:
+    - { role: openshift_monitoring/namespace }
+    #- { role: openshift_monitoring/prometheus-node_exporter, action: 'install' }
+    - { role: openshift_monitoring/prometheus, action: 'install' }
+
+#- hosts: instance-openshift_infra
+#  become: yes
+#  become_user: root
+#  roles:
+#  - { role: openshift_monitoring/router-iptables }
+

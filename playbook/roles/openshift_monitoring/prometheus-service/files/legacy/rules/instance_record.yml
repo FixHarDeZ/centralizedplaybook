@@ -1,0 +1,33 @@
+groups:
+  - name: instance_record
+    rules:
+    - record: instance_cpu_usage:1m
+      expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[1m]))by(instance_hostname)*100)
+    - record: instance_group_cpu_usage:1m
+      expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[1m]))by(instance_hostname,instance_group)*100)
+
+    - record: instance_cpu_usage_total:irate:percent
+      expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[2m]))by(instance,instance_hostname,instance_group)*100)
+    - record: instance_cpu_usage_mode:irate:percent
+      expr: avg(irate(node_cpu_seconds_total{mode!='idle'}[2m])) by (instance,instance_hostname,mode) *100
+    - record: instance_mem_available
+      expr: node_memory_MemAvailable_bytes
+    - record: instance_mem_total
+      expr: node_memory_MemTotal_bytes
+    - record: instance_mem_usage:percent
+      expr: ((instance_mem_total - instance_mem_available)) / (instance_mem_total) * 100
+
+    - record: instance_fs_usage:byte
+      expr: node_filesystem_size_bytes - node_filesystem_avail_bytes
+
+    - record: instance_fs_usage:percent
+      expr: 100 - (  ((node_filesystem_avail_bytes{})  / (node_filesystem_size_bytes{} )) *100)
+
+    - record: instance_fs_size
+      expr: node_filesystem_size_bytes
+      
+    - record: instance_network_in
+      expr: irate(node_network_receive_bytes_total{device!='lo'}[2m])*8
+      
+    - record: instance_network_out
+      expr:  irate(node_network_transmit_bytes_total{device!='lo'}[2m])*8

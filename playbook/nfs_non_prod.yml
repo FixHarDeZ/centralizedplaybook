@@ -1,0 +1,307 @@
+- name: setup and config nfs
+  hosts: nfs
+  become: yes
+  become_user: root
+  vars:
+    targets:
+      1: "ListenStream=\\[::\\]:111"
+      2: "BindIPv6Only=ipv6-only"
+    disk_name: /dev/sdb
+    vg_name: nfs_vg
+    mountpoints:
+      vault_lv:
+        path: /vault
+        size: 10G
+      jenkins_home_truemoney_lv:
+        path: /jenkins_home_truemoney
+        size: 30G
+      jenkins_jobs_truemoney_lv:
+        path: /jenkins_jobs_truemoney
+        size: 50G
+      jenkins_workspace_truemoney_lv:
+        path: /jenkins_workspace_truemoney
+        size: 100G
+      jenkins_home_equator_lv:
+        path: /jenkins_home_equator
+        size: 30G
+      jenkins_jobs_equator_lv:
+        path: /jenkins_jobs_equator
+        size: 50G
+      jenkins_workspace_equator_lv:
+        path: /jenkins_workspace_equator
+        size: 100G
+      maven_repo_truemoney_lv:
+        path: /maven_repo_truemoney
+        size: 50G
+      maven_repo_equator_lv:
+        path: /maven_repo_equator
+        size: 50G
+      console_workspace_lv:
+        path: /console_workspace
+        size: 20G
+      eq_dataexport_dev_lv:
+        path: /equator_dataexport-vol01_dev
+        size: 5G
+      eq_dataexport_qa_lv:
+        path: /equator_dataexport-vol01_qa
+        size: 5G
+      eq_dataexport_pref_lv:
+        path: /equator_dataexport-vol01_performance
+        size: 5G
+      eq_dataexport_lv:
+        path: /equator_dataexport-vol01_staging
+        size: 5G
+      eq_housekeeping_dev_lv:
+        path: /equator_housekeeping-vol01_dev
+        size: 5G
+      eq_housekeeping_qa_lv:
+        path: /equator_housekeeping-vol01_qa
+        size: 5G
+      eq_housekeeping_pref_lv:
+        path: /equator_housekeeping-vol01_performance
+        size: 5G
+      eq_housekeeping_lv:
+        path: /equator_housekeeping-vol01_staging
+        size: 5G
+      eq_reconciler_dev_lv:
+        path: /equator_reconciler-vol01_dev
+        size: 5G
+      eq_reconciler_qa_lv:
+        path: /equator_reconciler-vol01_qa
+        size: 5G
+      eq_reconciler_pref_lv:
+        path: /equator_reconciler-vol01_performance
+        size: 5G
+      eq_reconciler_lv:
+        path: /equator_reconciler-vol01_staging
+        size: 5G
+      configuration_nano_lv:
+        path: /configuration_nano
+        size: 100G
+      jenkins_home_nano_lv:
+        path: /jenkins_home_nano
+        size: 30G
+      jenkins_jobs_nano_lv:
+        path: /jenkins_jobs_nano
+        size: 50G     
+      jenkins_workspace_nano_lv:
+        path: /jenkins_workspace_nano
+        size: 100G
+      maven_repo_nano_lv:
+        path: /maven_repo_nano
+        size: 50G
+      equator_sandbox_dataexport_dev_lv:
+        path: /equator_sandbox_dataexport-vol01_dev
+        size: 5G
+      equator_sandbox_housekeeping_dev_lv:
+        path: /equator_sandbox_housekeeping-vol01_dev
+        size: 5G
+      equator_sandbox_reconciler_dev_lv:
+        path: /equator_sandbox_reconciler-vol01_dev
+        size: 5G
+      nano_reconcile_dev_lv:
+        path: /nano_reconcile-vol01_dev
+        size: 1G
+      nano_reconcile_qa_lv:
+        path: /nano_reconcile-vol01_qa
+        size: 1G
+      nano_reconcile_performance_lv:
+        path: /nano_reconcile-vol01_performance
+        size: 1G
+      nano_reconcile_staging_lv:
+        path: /nano_reconcile-vol01_staging
+        size: 1G
+      vitess_backup_dev_lv:
+        path: /vitess_backup_dev
+        size: 5G
+      vitess_backup_qa_lv:
+        path: /vitess_backup_qa
+        size: 5G
+      vitess_backup_perf_lv:
+        path: /vitess_backup_perf
+        size: 5G
+      vitess_backup_staging_lv:
+        path: /vitess_backup_staging
+        size: 5G
+      truedevice_be_reconcile_dev_lv:
+        path: /truedevice-be-reconcile-dev
+        size: 1G
+      truedevice_be_reconcile_qa_lv:
+        path: /truedevice-be-reconcile-qa
+        size: 1G
+      truedevice_be_reconcile_perf_lv:
+        path: /truedevice-be-reconcile-perf
+        size: 1G
+      truedevice_be_reconcile_staging_lv:
+        path: /truedevice-be-reconcile-staging
+        size: 1G
+      equator_file_mgmt_dev_lv:
+        path: /equator_file_mgmt_dev
+        size: 2G
+      equator_file_mgmt_qa_lv:
+        path: /equator_file_mgmt_qa
+        size: 2G    
+      equator_file_mgmt_performance_lv:
+        path: /equator_file_mgmt_performance
+        size: 2G            
+      equator_file_mgmt_staging_lv:
+        path: /equator_file_mgmt_staging
+        size: 2G    
+      jenkins_workspace_truemoney_01_lv:
+        path: /jenkins_workspace_truemoney-01
+        size: 20G    
+      jenkins_jobs_truemoney_01_lv:
+        path: /jenkins_jobs_truemoney-01
+        size: 20G            
+      jenkins_home_truemoney_01_lv:
+        path: /jenkins_home_truemoney-01
+        size: 20G     
+      jenkins_home_equator_01_lv:
+        path: /jenkins_home_equator_01
+        size: 20G    
+      jenkins_jobs_equator_01_lv:
+        path: /jenkins_jobs_equator_01
+        size: 20G  
+      jenkins_home_nano_01_lv:
+        path: /jenkins_home_nano_01
+        size: 20G 
+      jenkins_jobs_nano_01_lv:
+        path: /jenkins_jobs_nano_01
+        size: 20G  
+      cachethq_dbbackup_dev_lv:
+        path: /cachethq_dbbackup_dev
+        size: 2G  
+      truemoney_product_file_mgmt_dev_lv:
+        path: /truemoney_product_file_mgmt_dev
+        size: 1G 
+      truemoney_product_file_mgmt_qa_lv:
+        path: /truemoney_product_file_mgmt_qa
+        size: 1G 
+      truemoney_product_file_mgmt_performance_lv:
+        path: /truemoney_product_file_mgmt_performance
+        size: 1G 
+      truemoney_product_file_mgmt_staging_lv:
+        path: /truemoney_product_file_mgmt_staging
+        size: 1G         
+    groupdir:
+      - /vault
+      - /jenkins_home_truemoney
+      - /jenkins_jobs_truemoney
+      - /jenkins_workspace_truemoney
+      - /jenkins_home_equator
+      - /jenkins_jobs_equator
+      - /jenkins_workspace_equator
+      - /maven_repo_truemoney
+      - /maven_repo_equa_or
+      - /console_workspace
+      - /equator_dataexport-vol01_dev
+      - /equator_dataexport-vol01_qa
+      - /equator_dataexport-vol01_performance
+      - /equator_dataexport-vol01_staging
+      - /equator_housekeeping-vol01_dev
+      - /equator_housekeeping-vol01_qa
+      - /equator_housekeeping-vol01_performance 
+      - /equator_housekeeping-vol01_staging
+      - /equator_reconciler-vol01_dev
+      - /equator_reconciler-vol01_qa
+      - /equator_reconciler-vol01_performance
+      - /equator_reconciler-vol01_staging
+      - /configuration_nano
+      - /jenkins_home_nano
+      - /jenkins_jobs_nano
+      - /jenkins_workspace_nano
+      - /maven_repo_nano
+      - /equator_sandbox_dataexport-vol01_dev
+      - /equator_sandbox_housekeeping-vol01_dev
+      - /equator_sandbox_reconciler-vol01_dev
+      - /nano_reconcile-vol01_dev
+      - /nano_reconcile-vol01_qa
+      - /nano_reconcile-vol01_performance
+      - /nano_reconcile-vol01_staging
+      - /vitess_backup_dev
+      - /vitess_backup_qa
+      - /vitess_backup_perf
+      - /vitess_backup_staging
+      - /truedevice-be-reconcile-dev
+      - /truedevice-be-reconcile-qa
+      - /truedevice-be-reconcile-perf
+      - /truedevice-be-reconcile-staging
+      - /equator_file_mgmt_dev
+      - /equator_file_mgmt_qa
+      - /equator_file_mgmt_performance
+      - /equator_file_mgmt_staging       
+      - /jenkins_workspace_truemoney-01
+      - /jenkins_jobs_truemoney-01   
+      - /jenkins_home_truemoney-01
+      - /jenkins_home_equator_01
+      - /jenkins_jobs_equator_01      
+      - /jenkins_home_nano_01      
+      - /jenkins_jobs_nano_01 
+      - /cachethq_dbbackup_dev 
+      - /truemoney_product_file_mgmt_dev 
+      - /truemoney_product_file_mgmt_qa
+      - /truemoney_product_file_mgmt_performance
+      - /truemoney_product_file_mgmt_staging      
+    contentdir: |
+        /configuration_truemoney *(rw)
+        /configuration_equator *(rw)
+        /vault *(rw,insecure,sync,no_subtree_check,no_root_squash)
+        /jenkins_home_truemoney *(rw)
+        /jenkins_jobs_truemoney *(rw)
+        /jenkins_workspace_truemoney *(rw)
+        /jenkins_home_equator *(rw)
+        /jenkins_jobs_equator *(rw)
+        /jenkins_workspace_equator *(rw)
+        /maven_repo_truemoney *(rw)
+        /maven_repo_equator *(rw)
+        /console_workspace *(rw)
+        /equator_dataexport-vol01_dev *(rw)
+        /equator_dataexport-vol01_qa *(rw)
+        /equator_dataexport-vol01_performance *(rw)
+        /equator_dataexport-vol01_staging *(rw)
+        /equator_housekeeping-vol01_dev *(rw)
+        /equator_housekeeping-vol01_qa *(rw)
+        /equator_housekeeping-vol01_performance *(rw)
+        /equator_housekeeping-vol01_staging *(rw)
+        /equator_reconciler-vol01_dev *(rw)
+        /equator_reconciler-vol01_qa *(rw)
+        /equator_reconciler-vol01_performance *(rw)
+        /equator_reconciler-vol01_staging *(rw)
+        /configuration_nano *(rw)
+        /jenkins_home_nano *(rw)
+        /jenkins_jobs_nano *(rw)
+        /jenkins_workspace_nano *(rw)
+        /maven_repo_nano *(rw)
+        /equator_sandbox_dataexport-vol01_dev *(rw)
+        /equator_sandbox_housekeeping-vol01_dev *(rw)
+        /equator_sandbox_reconciler-vol01_dev *(rw)
+        /nano_reconcile-vol01_dev *(rw)
+        /nano_reconcile-vol01_qa *(rw)
+        /nano_reconcile-vol01_performance *(rw)
+        /nano_reconcile-vol01_staging *(rw)
+        /vitess_backup_dev *(rw)
+        /vitess_backup_qa *(rw)
+        /vitess_backup_perf *(rw)
+        /vitess_backup_staging *(rw)
+        /truedevice-be-reconcile-dev *(rw)
+        /truedevice-be-reconcile-qa *(rw)
+        /truedevice-be-reconcile-perf *(rw)
+        /truedevice-be-reconcile-staging *(rw)
+        /equator_file_mgmt_dev *(rw)
+        /equator_file_mgmt_qa *(rw)
+        /equator_file_mgmt_performance *(rw)
+        /equator_file_mgmt_staging *(rw)    
+        /jenkins_workspace_truemoney-01 *(rw)
+        /jenkins_jobs_truemoney-01 *(rw)   
+        /jenkins_home_truemoney-01 *(rw)     
+        /jenkins_home_equator_01 *(rw)   
+        /jenkins_jobs_equator_01 *(rw)        
+        /jenkins_home_nano_01 *(rw)        
+        /jenkins_jobs_nano_01 *(rw)     
+        /cachethq_dbbackup_dev *(rw)
+        /truemoney_product_file_mgmt_dev *(rw)
+        /truemoney_product_file_mgmt_qa *(rw)
+        /truemoney_product_file_mgmt_performance *(rw)
+        /truemoney_product_file_mgmt_staging *(rw)
+  roles:
+    - nfs

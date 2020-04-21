@@ -1,0 +1,26 @@
+---
+- name: ensure node_exporter installed
+  shell: "rpm -qa | grep node_exporter"
+  register: NodeExpCheck
+  ignore_errors: True
+
+- name: require task setup agent
+  include_tasks: setup-agent.yml
+  when: NodeExpCheck is failed
+
+- name: require task setup itpables
+  include_tasks: setup-iptables.yml
+  when: NodeExpCheck is failed
+
+#- name: config iptables allow 9200
+#  iptables:
+#    action: insert
+#    chain: INPUT
+#    protocol: tcp
+#    match: tcp
+#    destination_port: 9200
+#    jump: ACCEPT
+#    comment: node_exporter 9200
+#    state: present
+#  register: iptables_reg
+    

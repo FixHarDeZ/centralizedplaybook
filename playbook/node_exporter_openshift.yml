@@ -1,0 +1,6 @@
+---
+- hosts: openshift
+  become: yes
+  become_user: root
+  roles:
+    - { role: openshift_monitoring/node_exporter_openshift }

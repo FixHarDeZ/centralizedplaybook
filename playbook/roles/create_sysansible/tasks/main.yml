@@ -1,0 +1,44 @@
+---
+- name: Delete shadow.lock
+  file:
+    state: absent
+    path: "/etc/shadow.lock"
+    
+- name: Add Group sysansible
+  group:
+    gid: 3000
+    name: sysansible
+    state: present
+    
+- name: Create user sysansible
+  user:
+    name: sysansible
+    shell: /bin/bash
+    uid: 3000
+    group: 3000
+    
+- name: Create directory .ssh
+  file:
+    state: directory
+    path: /home/sysansible/.ssh
+    owner: sysansible
+    group: sysansible
+    mode: 0700
+
+- name: Add SSH authorized key
+  copy:
+    src: authorized_keys
+    dest: /home/sysansible/.ssh/authorized_keys
+    owner: sysansible
+    group: sysansible
+    mode: 0600
+
+- name: Config Sudoers file
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    line: 'sysansible ALL=(ALL) NOPASSWD: ALL'
+    # mode: 0640
+    
+- name: password no expiry
+  raw: chage -m -1 -M -1 -I -1 -E -1  -W -1 sysansible

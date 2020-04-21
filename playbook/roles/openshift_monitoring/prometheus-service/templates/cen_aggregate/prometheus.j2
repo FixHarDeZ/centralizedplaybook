@@ -1,0 +1,115 @@
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  scrape_timeout: 15s # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - '{{vars.groups['instance-alertmanager'][0]}}:9093'
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "./rules/*.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node_exporter'  # This is a default value, it is mandatory.
+    scrape_interval: 30s
+    file_sd_configs:
+      - files:
+        - targets/node_exporter.json
+
+  - job_name: 'elasticsearch_exporter'
+    scrape_interval: 30s
+    file_sd_configs:
+      - files:
+        - targets/elasticsearch.json
+        
+  - job_name: 'federate_hw_network'
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    honor_labels: true
+    metrics_path: '/federate'
+    params:
+      'match[]':
+        - '{__name__=~".+"}'
+    static_configs:
+      - targets:
+        - '{{ prometheus_federate_hw_network }}:9090'
+        
+  - job_name: 'federate_vmware'
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    honor_labels: true
+    metrics_path: '/federate'
+    params:
+      'match[]':
+        - '{__name__=~".+"}'
+    static_configs:
+      - targets:
+        - '{{ prometheus_federate_vmware }}:9090'
+        
+  - job_name: 'mongodb_exporter'
+    scrape_interval: 30s
+    scrape_timeout: 30s
+    static_configs:
+      - targets: {{ prometheus_mongodb_exporter|to_json }}
+
+  - job_name: 'graylog'
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    scrape_interval: 15s
+    metrics_path: '/api/plugins/org.graylog.plugins.metrics.prometheus/metrics'
+    basic_auth:
+        username: "monitor"
+        password: "monitor"
+    static_configs:
+      - targets: {{ prometheus_graylog|to_json }}
+      
+  - job_name: 'rabbitmq'
+    scrape_interval: 30s
+    scrape_timeout: 30s
+    static_configs:
+      - targets: {{ prometheus_rabbitmq|to_json }}
+      
+  - job_name: 'wmi_exporter'
+    scrape_interval: 30s
+    scrape_timeout: 30s
+    static_configs:
+      - targets: {{ prometheus_wmi_exporter|to_json }}
+       
+{% if prometheus_federate_crontab is defined %}
+  - job_name: 'crontab_jenkins'
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    scrape_interval: 30s
+    scrape_timeout: 30s
+    metrics_path: '/prometheus'
+    static_configs:
+      - targets: 
+        - {{ prometheus_federate_crontab|to_json }}
+{% endif %}
+
+{% if job_nodefc_exporter is defined %}
+  - job_name: 'nodefc_exporter '
+    scrape_interval: 15s
+    scrape_timeout: 15s
+    metrics_path: '/scrap'
+    file_sd_configs:
+      - files:
+        - targets/nodefc_exporter.json
+{% endif %}

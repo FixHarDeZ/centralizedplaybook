@@ -1,0 +1,133 @@
+groups:
+- name: instance_alert
+  rules:
+  - alert: agent_down
+    expr:  up == 0
+    for: 1m
+    labels:
+      severity: critical
+      owner: sys
+    annotations:
+      summary: "agent {{$labels.job}} down > 0"
+      description: "{{$labels.instance}} agent {{$labels.job}} down  "
+
+  - alert: instance_cpu_warning
+    expr: instance_cpu_usage_total:irate:percent > 85 and instance_cpu_usage_total:irate:percent <= 90
+    for: 5m
+    labels:
+      severity: warning
+      owner: sys
+    annotations:
+      summary: "instance cpu usage > 80%"
+      description: "{{$labels.instance}} instance cpu usage {{$value}}%"
+
+  - alert: instance_cpu_critical
+    expr: instance_cpu_usage_total:irate:percent > 90
+    for: 5m
+    labels:
+      severity: critical
+      owner: sys
+    annotations:
+      summary: "instance cpu usage > 90%"
+      description: "{{$labels.instance}} instance cpu usage {{$value}}%"
+
+  - alert: instance_memory_warning_cent7
+    expr: instance_mem_usage:percent{centos="7"} > 85 and instance_mem_usage:percent{centos="7"} <= 90 
+    for: 5m
+    labels:
+      severity: warning
+      owner: sys
+    annotations:
+      summary: "instance memory usage > 80%"
+      description: "{{$labels.instance}} instance memory usage {{$value}}%"
+
+  - alert: instance_memory_critical_cent7
+    expr: instance_mem_usage:percent > 90 
+    for: 5m
+    labels:
+      severity: critical
+      owner: sys
+    annotations:
+      summary: "instance memory usage > 90%"
+      description: "{{$labels.instance}} instance memory usage {{$value}}%"
+
+#Filesystem Small 10Gb
+  - alert: instance_filsystem_small_warning
+    expr:  instance_fs_usage:percent > 80 and instance_fs_usage:percent <= 90  and instance_fs_size <= 10737418240 
+    for: 30s
+    labels:
+      severity: warning
+      owner: sys
+    annotations:
+      summary: "instance filesystem-small usage > 80%"
+      description: "{{$labels.instance}} instance filesystem usage {{$value}}%"
+  - alert: instance_filsystem_small_critical
+    expr:  instance_fs_usage:percent > 90  and instance_fs_size < 10737418240 
+    for: 30s
+    labels:
+      severity: critical
+      owner: sys
+    annotations:
+      summary: "instance filesystem-small usage > 90%"
+      description: "{{$labels.instance}} instance filesystem usage {{$value}}%"
+
+#Filesystem Medium 10GB -> 100GB
+  - alert: instance_filsystem_medium_warning
+    expr: (instance_fs_usage:percent >= 90 and  instance_fs_usage:percent < 95)  and (instance_fs_size > 10737418240 and instance_fs_size <= 107374182400)
+    for: 30s
+    labels:
+      severity: warning
+      owner: sys
+    annotations:
+      summary: "instance filesystem-medium  usage > 90%"
+      description: "{{$labels.instance}} instance filesystem usage {{$value}}%"
+  - alert: instance_filsystem_medium_critical
+    expr:  instance_fs_usage:percent > 95 and (instance_fs_size > 10737418240 and instance_fs_size <=107374182400)
+    for: 30s
+    labels:
+      severity: critical
+      owner: sys
+    annotations:
+      summary: "instance filesystem-medium usage > 95%"
+      description: "{{$labels.instance}} instance filesystem usage {{$value}}%"
+
+#Filesystem  100GB -> 1TB
+  - alert: instance_filsystem_large_warning
+    expr:  instance_fs_usage:percent >= 95  and  instance_fs_usage:percent < 98 and (instance_fs_size > 107374182400 and instance_fs_size <= 1073741824000)
+    for: 30s
+    labels:
+      severity: warning
+      owner: sys
+    annotations:
+      summary: "instance filesystem-large  usage > 95%"
+      description: "{{$labels.instance}} instance filesystem 1TB usage {{$value}}%"
+  - alert: instance_filsystem_large_critical
+    expr:  instance_fs_usage:percent > 98 and (instance_fs_size > 107374182400 and instance_fs_size <= 1073741824000)
+    for: 30s
+    labels:
+      severity: critical
+      owner: sys
+    annotations:
+      summary: "instance filesystem-large usage > 98%"
+      description: "{{$labels.instance}} instance filesystem usage {{$value}}%"
+
+
+#Filesystem  > 1TB
+  - alert: instance_filsystem_xlarge_warning
+    expr:  instance_fs_usage:percent >= 95  and  instance_fs_usage:percent < 98  and (instance_fs_size > 1073741824000)
+    for: 30s
+    labels:
+      severity: warning
+      owner: sys
+    annotations:
+      summary: "instance filesystem-xlage  usage > 95%"
+      description: "{{$labels.instance}} instance filesystem 1TB usage {{$value}}%"
+  - alert: instance_filsystem_xlarge_critical
+    expr:  instance_fs_usage:percent > 98 and (instance_fs_size > 1073741824000)
+    for: 30s
+    labels:
+      severity: critical
+      owner: sys
+    annotations:
+      summary: "instance filesystem-xlage usage > 98%"
+      description: "{{$labels.instance}} instance filesystem usage {{$value}}%"

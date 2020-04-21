@@ -1,0 +1,14 @@
+vars:
+  targets:
+    ha:
+      name: haproxy
+      port: 1936
+      target_path: hagen.json
+    node:
+      name: node_exporter
+      port: 9100
+      target_path: node_exporter.json
+    els:
+      name: elasticsearch
+      port: 9108
+      target_path: elasticsearch.json

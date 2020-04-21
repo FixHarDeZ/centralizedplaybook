@@ -1,0 +1,18 @@
+
+### SET OPENSHIFT ROUTER PASSWORD
+- hosts: instance-openshift_master
+  become: yes
+  become_user: root
+  roles:
+  - { role: openshift_monitoring/router-passwd }
+
+
+### SET PROMETHEUS SYSTEM AGGREGATE
+- hosts: instance-prometheus_sys_aggregate
+  become: yes
+  become_user: root
+  vars:
+    homedir: /etc/prometheus
+    prometheus_type: "sys_aggregate"
+  roles:
+  - { role: openshift_monitoring/prometheus-service, action: 'sys_aggregate' }

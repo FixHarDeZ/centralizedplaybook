@@ -1,0 +1,335 @@
+global:
+  smtp_smarthost: '{{smtp_host}}'
+  smtp_from: '{{email_from}}'
+  smtp_require_tls: false
+
+# The directory from which notification templates are read.
+templates:
+  - '/etc/prometheus/email.html'
+
+# The root route on which each incoming alert enters.
+route:
+  # A default receiver
+  group_by: ['alertname', 'cluster']
+  group_wait: 30s
+  group_interval: 5m
+  receiver: default_receive
+  
+  # route for label owner
+  routes:
+  
+# Alert For system
+  - match:
+      owner: sys
+    group_wait: 1m
+    receiver: system_teamP3
+    group_by: ['alertname','owner','serverity','instance','instance_hostname','mountpoint']
+    routes:
+    - match:
+        serverity: critical
+      repeat_interval: 4h
+      receiver: system_teamP1
+    - match:
+        serverity: warning
+      repeat_interval: 6h
+      receiver: system_teamP3
+
+
+# Alert For fiber_channel
+  - match:
+      owner: fiber_channel
+    group_wait: 10s
+    receiver: fiber_channel_team
+    group_by: ['alertname','owner','serverity','instance','id']
+    routes:
+    - match:
+        serverity: critical
+      repeat_interval: 4h
+      receiver: fiber_channel_team
+    - match:
+        serverity: warning
+      repeat_interval: 6h
+      receiver: fiber_channel_team
+      
+# Alert For sd
+  - match:
+      owner: sd
+    group_wait: 1m
+    receiver: sd_teamP3
+    group_by: ['alertname','owner','serverity','instance','node']
+    routes:
+    - match:
+        serverity: critical
+      repeat_interval: 4h
+      receiver: sd_teamP1
+    - match:
+        serverity: warning
+      repeat_interval: 6h
+      receiver: sd_teamP3
+      
+# Alert For platform
+  - match:
+      owner: platform
+    group_wait: 1m
+    receiver: platform_teamP3
+    group_by: ['alertname','owner','serverity','instance','namespace','replicationcontrollers']
+    routes:
+    - match:
+        serverity: critical
+      repeat_interval: 4h
+      receiver: platform_teamP1
+    - match:
+        serverity: warning
+      repeat_interval: 6h
+      receiver: platform_teamP3
+      
+# Alert For platform service
+  - match:
+      owner: ps
+    group_wait: 1m
+    receiver: platform_service_teamP3
+    group_by: ['alertname','owner','serverity','namespace','replicationcontrollers']
+    routes:
+    - match:
+        serverity: critical
+      repeat_interval: 4h
+      receiver: platform_service_teamP1
+    - match:
+        serverity: warning
+      repeat_interval: 6h
+      receiver: platform_service_teamP3
+
+  # Alert For core
+  - match:
+      owner: dev_core
+    group_wait: 15s
+    receiver: core_P3
+    group_by: ['alertname','owner','serverity','instance','instance_hostname','id','namespace','pod_name','replicationcontrollers','pod_ip','service','host_instance_ip']
+    routes:
+    - match:
+        serverity: critical
+      repeat_interval: 4h
+      receiver: core_P1
+    - match:
+        serverity: warning
+      repeat_interval: 6h
+      receiver: core_P3
+      
+ # Alert For creditpay
+  - match:
+      owner: dev_creditpay
+    group_wait: 15s
+    receiver: creditpay_P3
+    group_by: ['alertname','owner','serverity','instance','instance_hostname','id','namespace','pod_name','replicationcontrollers','pod_ip','service','host_instance_ip']
+    routes:
+    - match:
+        serverity: critical
+      repeat_interval: 4h
+      receiver: creditpay_P1
+    - match:
+        serverity: warning
+      repeat_interval: 6h
+      receiver: creditpay_P3 
+    
+# Alert For creditpay ext
+  - match:
+      owner: dev_creditpay_ext
+    group_wait: 15s
+    receiver: creditpayext_P3
+    group_by: ['alertname','owner','serverity','instance','instance_hostname','id','namespace','pod_name','replicationcontrollers','pod_ip','service','host_instance_ip']
+    routes:
+    - match:
+        serverity: critical
+      repeat_interval: 4h
+      receiver: creditpayext_P1
+    - match:
+        serverity: warning
+      repeat_interval: 6h
+      receiver: creditpayext_P3
+      
+  # Alert For dba
+  - match:
+      owner: dba
+    group_wait: 1m
+    receiver: dba_P3
+    group_by: ['alertname','owner','serverity','instance','instance_hostname','id','namespace','pod_name','replicationcontrollers','pod_ip','service','host_instance_ip']
+    routes:
+    - match:
+        serverity: critical
+      repeat_interval: 4h
+      receiver: dba_P1
+    - match:
+        serverity: warning
+      repeat_interval: 6h
+      receiver: dba_P3
+
+  # Alert For Testing
+  - match:
+      alertgroup: sending
+    group_by: [alertname, alertgroup, serverity]
+    group_wait: 1m
+    group_interval: 1m
+    repeat_interval: 1s
+    receiver: default_receive
+    
+
+# Inhibition rules allow to mute a set of alerts given that another alert is
+# firing.
+# We use this to mute any warning-level notifications if the same alert is
+# already critical.
+inhibit_rules:
+- source_match:
+    severity: 'critical'
+  target_match:
+    severity: 'warning'
+  # Apply inhibition if the alertname is the same.
+  equal: ['alertname', 'cluster', 'service']
+
+receivers:
+- name: 'default_receive'
+  email_configs:
+  - to: '{{ email_to_default_receive }}'
+  opsgenie_configs:
+  - api_key: {{ opsgenie_api_key }}
+  
+- name: 'system_teamP1'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAq0R-fRU/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=dko0vGdfEPBYgUiTomoxCfmfMJnCwl5rf3nizC94F8c%3D'
+  email_configs:
+  - to: '{{ email_to_system_team }}'
+  opsgenie_configs:
+  - api_key: {{ opsgenie_api_key }}
+    tags: sys
+    priority: P1
+    
+- name: 'system_teamP3'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAq0R-fRU/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=dko0vGdfEPBYgUiTomoxCfmfMJnCwl5rf3nizC94F8c%3D'
+  email_configs:
+  - to: '{{ email_to_system_team }}'
+  opsgenie_configs:
+  - api_key: {{ opsgenie_api_key }}
+    tags: sys
+    priority: P3
+    
+- name: 'sd_teamP1'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAcuQa-s4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=DwBCb_kiCo0gUxez2zV36QoN5pjbm8AGc8UujmUgWGo%3D'
+  opsgenie_configs:
+  - api_key: {{ opsgenie_api_key }}
+    tags: sd
+    priority: P1
+    
+- name: 'sd_teamP3'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAcuQa-s4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=DwBCb_kiCo0gUxez2zV36QoN5pjbm8AGc8UujmUgWGo%3D'
+  opsgenie_configs:
+  - api_key: {{ opsgenie_api_key }}
+    tags: sd
+    priority: P3
+    
+- name: 'platform_teamP1'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAL0JHfqc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=VfVkmYcJfMuOxlcUte9aMQ53gQfloMC165Spuj6D8Rg%3D'
+  opsgenie_configs:
+  - api_key: {{ opsgenie_api_key }}
+    tags: platform
+    priority: P1
+    
+- name: 'platform_teamP3'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAL0JHfqc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=VfVkmYcJfMuOxlcUte9aMQ53gQfloMC165Spuj6D8Rg%3D'
+  opsgenie_configs:
+  - api_key: {{ opsgenie_api_key }}
+    tags: platform
+    priority: P3
+    
+- name: 'platform_service_teamP1'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAK2MG3To/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=_2b82AZiLcPMzBYVP5-eVxwcnVXUu4r3H2Wgw8s8n1A%3D'
+     send_resolved: true
+   - url: 'https://api-service-cicd.cicd.ascendmoney-dev.internal/api/vault/unseal-vault'
+
+- name: 'platform_service_teamP3'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAK2MG3To/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=_2b82AZiLcPMzBYVP5-eVxwcnVXUu4r3H2Wgw8s8n1A%3D'
+     send_resolved: true
+   - url: 'https://api-service-cicd.cicd.ascendmoney-dev.internal/api/vault/unseal-vault'
+
+- name: 'network_team'
+  email_configs:
+  - to: '{{ email_to_network_team }}'
+  opsgenie_configs:
+  - api_key: {{ opsgenie_api_key }}
+    tags: network
+
+- name: 'so_team'
+  email_configs:
+  - to: '{{ email_to_so_team }}'
+  opsgenie_configs:
+  - api_key: {{ opsgenie_api_key }}
+    tags: so
+    
+- name: 'core_P1'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAQGlZEUk/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=m91Dh5dEYMALFC22urRN1kMtp1Eh1hw-a8dzkx2CXI8%3D'
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAASwVHOSc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=OyWXvO3shKk_j5OxoDvFCktjyb4WoYDBKV7IEqjHjdY%3D'
+  opsgenie_configs:
+  - api_key: {{ opsgenie_api_key }}
+    tags: sm
+    priority: P1
+    
+- name: 'core_P3'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAQGlZEUk/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=m91Dh5dEYMALFC22urRN1kMtp1Eh1hw-a8dzkx2CXI8%3D'
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAASwVHOSc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=OyWXvO3shKk_j5OxoDvFCktjyb4WoYDBKV7IEqjHjdY%3D'
+  opsgenie_configs:
+  - api_key: {{ opsgenie_api_key }}
+    tags: sm
+    priority: P3
+    
+- name: 'creditpay_P1'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAgt9Syg4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=1RjsNLlB8ERNhkgTKUpVofFTu1SK7HTLhbvLOtORt8o%3D'
+   
+- name: 'creditpay_P3'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAgt9Syg4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=1RjsNLlB8ERNhkgTKUpVofFTu1SK7HTLhbvLOtORt8o%3D'
+
+- name: 'dba_P1'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAJp9Wy4s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=ebtiyufhP39gYEV-YYvZBZ951qF-i2OIW9GjuVLbSjA%3D'
+  email_configs:
+  - to: '{{ email_to_dba }}'
+  #opsgenie_configs:
+  #- api_key: {{ opsgenie_api_key }}
+  
+- name: 'dba_P3'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAJp9Wy4s/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=ebtiyufhP39gYEV-YYvZBZ951qF-i2OIW9GjuVLbSjA%3D'
+  email_configs:
+  - to: '{{ email_to_dba }}'
+  #opsgenie_configs:
+  #- api_key: {{ opsgenie_api_key }}
+  
+- name: 'creditpayext_P1'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAA5tJK6DI/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=XjQheDV6hrMkzWoKzXSZLWUnbp-NFt8JYKPvTtW4rME%3D'
+   
+- name: 'creditpayext_P3'
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAA5tJK6DI/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=XjQheDV6hrMkzWoKzXSZLWUnbp-NFt8JYKPvTtW4rME%3D'
+
+
+- name: 'fiber_channel_team'
+  email_configs:
+  - to: 'Suthep_Janpheng@Dell.com'
+    send_resolved: true
+  - to: 'Nuttawit_Teawkul@Dell.com'
+    send_resolved: true
+  webhook_configs:
+   - url: 'http://localhost:8181/alertmanager?url=https://chat.googleapis.com/v1/spaces/AAAAL0JHfqc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=VfVkmYcJfMuOxlcUte9aMQ53gQfloMC165Spuj6D8Rg%3D'
+  opsgenie_configs:
+  - api_key: {{ opsgenie_api_key }}
+    tags: sys
+    priority: P3

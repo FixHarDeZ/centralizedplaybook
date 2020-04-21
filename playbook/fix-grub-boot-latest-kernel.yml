@@ -1,0 +1,22 @@
+---
+
+# Ref. https://wiki.centos.org/HowTos/Grub2
+
+- hosts: all
+  become: yes
+  become_user: root
+  vars:
+    grub_default: 0
+  tasks:
+    - name: change GRUB_DEFAULT
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_DEFAULT='
+        line: "GRUB_DEFAULT={{grub_default}}"
+        state: present
+
+    - name: Generating grub configuration file
+      command: grub2-mkconfig -o /boot/grub2/grub.cfg
+
+    - name: Set grub2-set-default
+      command: "grub2-set-default {{grub_default}}"

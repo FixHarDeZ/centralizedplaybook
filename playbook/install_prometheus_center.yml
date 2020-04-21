@@ -1,0 +1,21 @@
+--- 
+# setup instance prometheus system aggregate
+- hosts: instance-prometheus_cen_aggregate
+  become: yes
+  become_user: root
+  vars:
+    homedir: /etc/prometheus
+  roles:
+    - { role: openshift_monitoring/prometheus-packages }
+    - { role: openshift_monitoring/prometheus-service, action: 'cen_aggregate' }
+    
+- hosts: instance-prometheus_cen_data
+  become: yes
+  become_user: root
+  vars:
+    homedir: /etc/prometheus
+    prometheus_job: "cen_data"
+    service_option: setup
+  roles:
+    - { role: openshift_monitoring/prometheus-packages }
+    - { role: openshift_monitoring/prometheus-service, action: 'cen_data' }

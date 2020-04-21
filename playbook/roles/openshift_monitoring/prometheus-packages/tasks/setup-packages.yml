@@ -1,0 +1,18 @@
+---
+- name: Setup Package {{package_name}}
+  yum:
+    name: "{{package_name}}"
+    state: present
+
+#- debug: msg="{{ hostvars['10.14.20.11']['openshift_router_password'] }}"
+#- debug: msg="{{ hostvars[groups['instance-openshift_master'][0]]['openshift_router_password'] }}"
+
+#- name: copy file package prometheus
+#  copy:
+#    src: prometheus2-2.2.1-1.el7.centos.x86_64.rpm
+#    dest: /tmp/prometheus2-2.2.1-1.el7.centos.x86_64.rpm
+    
+#- name: run rpm
+#  yum:
+#    name: /tmp/prometheus2-2.2.1-1.el7.centos.x86_64.rpm
+#    state: present

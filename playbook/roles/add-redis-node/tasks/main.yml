@@ -1,0 +1,11 @@
+---
+
+  - include: redis-node.yml
+    tags:
+      - redis-node
+    when: redis_type == "node"
+
+  - include: redis-sentinel.yml
+    tags:
+      - redis-sentinel
+    when: redis_type == "sentinel"

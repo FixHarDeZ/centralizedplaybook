@@ -1,0 +1,12 @@
+- name: 'REMOVE NAMESPACE'
+  command:  oc delete project monitoring
+  ignore_errors: true
+
+- name: 'REMOVE CLUSTER-READER'
+  command: oc delete clusterrolebinding default monitoring
+  ignore_errors: true
+
+- name: 'REMOVE SERVICE ACCOUNT'
+  command: oc adm policy remove-scc-from-user privileged default monitoring
+  ignore_errors: true
+

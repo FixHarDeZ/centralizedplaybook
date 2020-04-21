@@ -1,0 +1,11 @@
+---
+
+- name: Include task for temporary
+  include: temporary.yml
+  when:
+    - temporary == "yes"
+
+- name: Include task for permanent
+  include: permanent.yml
+  when:
+    - temporary == "no"

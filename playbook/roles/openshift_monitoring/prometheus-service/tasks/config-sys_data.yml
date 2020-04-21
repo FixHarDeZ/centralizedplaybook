@@ -1,0 +1,50 @@
+---
+- name: 'REMOVE HOMEDIR'
+  file:
+    dest: "{{vars.homedir}}"
+    state: absent
+
+- name: 'CRATE HOMEDIR RULES'
+  file:
+    path: "{{vars.homedir}}/rules"
+    state: directory
+    owner: prometheus
+    group: prometheus
+
+- name: 'GET FEDERATE JOBS'
+  uri: url=http://{{vars.groups['instance-prometheus_sys_aggregate'][0]}}:9090/api/v1/label/job/values
+  register: federate_jobs
+
+- name: 'DEPLOY PROMETHEUS CONFIG'
+  template:
+    src: "sys_data/prometheus.j2"
+    dest: "{{vars.homedir}}/prometheus.yml"
+    owner: prometheus
+    group: prometheus
+    mode: 0644
+
+
+- name: 'DEPLOY PROMETHEUS OPTIONS'
+  copy: 
+    src: "files/sys_data/prometheus.opt" 
+    dest: "/etc/default/prometheus"
+    owner: prometheus
+    group: prometheus
+    mode: 0755
+
+
+- name: 'DEPLOY PROMETHEUS RULES'
+  copy: 
+    src: "files/sys_data/rules" 
+    dest: "{{homedir}}/"
+    owner: prometheus
+    group: prometheus
+    mode: 0755
+
+
+- name: 'RESTART SERVICE PROMETHEUS'
+  service:  name=prometheus state=reloaded
+
+
+#- debug: var=result
+- debug: var=federate_jobs

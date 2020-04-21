@@ -1,0 +1,22 @@
+---
+
+- name: publish content views
+  raw: "/backup/scripts/katello-cvmanager/cvmanager --config=/backup/scripts/katello-cvmanager/publish.yaml --wait publish"
+  ignore_errors: true
+  tags: publish_cv
+
+- name: cleanup unused content views
+  raw: "/backup/scripts/katello-cvmanager/cvmanager --config=/backup/scripts/katello-cvmanager/publish.yaml --wait clean"
+  ignore_errors: true
+  tags: cleanup_cv
+
+- name: promote Non-Production environment
+  raw: "/backup/scripts/katello-cvmanager/monthly_updates_nonprod.sh > /tmp/monthly_updates_nonprod.log 2>&1"
+  ignore_errors: true
+  tags: update_nprod_cv
+
+- name: promote Production environment
+  raw: "/backup/scripts/katello-cvmanager/monthly_updates_prod.sh > /tmp/monthly_updates_prod.log 2>&1"
+  ignore_errors: true
+  tags: update_prod_cv
+

@@ -1,0 +1,7 @@
+---
+# setup instance Alertmanager
+- hosts: "{{ ansible_tower }}"
+  become: yes
+  become_user: root
+  roles:
+    - { role: openshift_monitoring/prometheus-rules-platform}

@@ -1,0 +1,14 @@
+apiVersion: "v1" 
+kind: "PersistentVolumeClaim" 
+metadata: 
+  name: "{{ item.nfs.pvc_name }}" 
+  annotations: 
+    pv.kubernetes.io/bound-by-controller: "yes" 
+    volume.beta.kubernetes.io/storage-class: nfs 
+spec: 
+  accessModes: 
+    - "ReadWriteMany" 
+  resources: 
+    requests: 
+      storage: "{{ item.nfs.size }}" 
+  volumeName: "{{ item.nfs.pv_name }}"

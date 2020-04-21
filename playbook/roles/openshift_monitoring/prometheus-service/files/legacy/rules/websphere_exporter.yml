@@ -1,0 +1,12 @@
+groups:
+- name: websphere_alert
+  rules:
+  - alert: websphere_appserver_down
+    expr:  was_up == 0
+    for: 1m
+    labels:
+      severity: critical
+      owner: sys
+    annotations:
+      summary: "agent {{$labels.job}} down > 0"
+      description: "{{$labels.instance}}|{{$labels.instance_hostname}} agent {{$labels.job}} down  "

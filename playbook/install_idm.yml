@@ -1,0 +1,10 @@
+---
+
+- name: Install prerequsite 
+  hosts: all
+  become: yes
+  become_user: root  
+  roles:
+       - resolv
+       - katello-agent
+       - idm_client

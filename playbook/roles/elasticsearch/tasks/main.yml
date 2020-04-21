@@ -1,0 +1,77 @@
+--- 
+- name: Turn off swap
+  shell: swapoff -a
+
+- name: Ensure swapoff at startup
+  lineinfile:
+    path: /etc/fstab
+    regexp: '^([^\s]*)\s+swap\s+(.*)'
+    state: absent
+- name: Install elasticsearch repo
+  yum_repository:
+    name: "{{ els_repo_name }}"
+    description: "{{ els_repo_des }}"
+    baseurl: "{{ els_url }}"
+    gpgkey: "{{ els_repo_gpg }}"
+  when: els_repo_name is defined
+
+# - name: Update all package
+#   yum:
+#     name: "*"
+#     state: latest
+
+
+- name: Install elasticsearch and its dependencies
+  yum:
+    name: "{{ item }}"
+    update_cache: yes
+  with_items:
+    - "{{ els_package_name }}"
+    - "{{ jre_package_name }}"
+
+- name: Set elasticsearch data directory permission
+  file: 
+    path: "{{ data_path }}"
+    owner: elasticsearch
+    group: elasticsearch
+    mode: 0750
+    state: directory
+  when: data_path is defined
+
+- name: Set elasticsearch data directory permission
+  file: 
+    path: "{{ els_tmp_path }}"
+    owner: elasticsearch
+    group: elasticsearch
+    mode: 0750
+    state: directory
+  when: els_tmp_path is defined
+
+- name: Set selinux context for data path
+  sefcontext:
+    target: "{{ data_path }}(/.*)?"
+    setype: var_lib_t
+    state: present
+    reload: yes
+  when: data_path is defined
+
+- name: Ensure selinux context reload
+  shell: restorecon -R -v {{ data_path }}
+  when: data_path is defined
+
+- name: Configure elasticsearch data node
+  template:
+    dest: /etc/elasticsearch/elasticsearch.yml
+    src: elasticsearch.yml.j2
+
+- name: Configure elasticsearch jvm
+  template:
+    dest: /etc/elasticsearch/jvm.options
+    src: jvm.option.j2
+
+- name: Start elasticsearch 
+  systemd:
+    name: elasticsearch
+    state: restarted
+    enabled: yes
+

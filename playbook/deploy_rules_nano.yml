@@ -1,0 +1,14 @@
+---
+# setup instance Alertmanager
+- hosts: alert_rule_app
+  become: yes
+  become_user: root
+  roles:
+    - { role: openshift_monitoring/deploy_rules_nano}
+    
+# setup instance Alertmanager
+- hosts: alert_rule_sys
+  become: yes
+  become_user: root
+  roles:
+    - { role: openshift_monitoring/deploy_rules_sys_app}

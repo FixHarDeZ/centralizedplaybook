@@ -1,0 +1,137 @@
+- name: setup and config nfs
+  hosts: nfs
+  become: yes
+  become_user: root
+  vars:
+    targets:
+      1: "ListenStream=\\[::\\]:111"
+      2: "BindIPv6Only=ipv6-only"
+    disk_name: /dev/sdb
+    vg_name: nfs_vg
+    mountpoints:
+      vault_lv:
+        path: /vault
+        size: 10G
+      jenkins_home_truemoney_lv:
+        path: /jenkins_home_truemoney
+        size: 30G
+      jenkins_jobs_truemoney_lv:
+        path: /jenkins_jobs_truemoney
+        size: 50G
+      jenkins_workspace_truemoney_lv:
+        path: /jenkins_workspace_truemoney
+        size: 100G
+      jenkins_home_equator_lv:
+        path: /jenkins_home_equator
+        size: 30G
+      jenkins_jobs_equator_lv:
+        path: /jenkins_jobs_equator
+        size: 50G
+      jenkins_workspace_equator_lv:
+        path: /jenkins_workspace_equator
+        size: 100G
+      maven_repo_truemoney_lv:
+        path: /maven_repo_truemoney
+        size: 50G
+      maven_repo_equator_lv:
+        path: /maven_repo_equator
+        size: 50G
+      console_workspace_lv:
+        path: /console_workspace
+        size: 20G
+      configuration_nano_lv:
+        path: /configuration_nano
+        size: 100G
+      jenkins_home_nano_lv:
+        path: /jenkins_home_nano
+        size: 30G
+      jenkins_jobs_nano_lv:
+        path: /jenkins_jobs_nano
+        size: 50G     
+      jenkins_workspace_nano_lv:
+        path: /jenkins_workspace_nano
+        size: 100G
+      maven_repo_nano_lv:
+        path: /maven_repo_nano
+        size: 50G
+      nano_reconcile_production_lv:
+        path: /nano_reconcile-vol01_production
+        size: 1G
+      vitess_backup_production_lv:
+        path: /vitess_backup_production
+        size: 5G
+      truedevice_be_reconcile_production_lv:
+        path: /truedevice-be-reconcile-production
+        size: 1G
+      jenkins_workspace_truemoney_01_lv:
+        path: /jenkins_workspace_truemoney_01
+        size: 20G    
+      jenkins_jobs_truemoney_01_lv:
+        path: /jenkins_jobs_truemoney_01
+        size: 20G            
+      jenkins_home_truemoney_01_lv:
+        path: /jenkins_home_truemoney_01
+        size: 20G
+      jenkins_workspace_nano_01_lv:
+        path: /jenkins_workspace_nano_01
+        size: 20G
+      jenkins_jobs_nano_01_lv:
+        path: /jenkins_jobs_nano_01
+        size: 20G  
+      jenkins_home_nano_01_lv:
+        path: /jenkins_home_nano_01
+        size: 20G 
+    groupdir:
+      - /vault
+      - /jenkins_home_truemoney
+      - /jenkins_jobs_truemoney
+      - /jenkins_workspace_truemoney
+      - /jenkins_home_equator
+      - /jenkins_jobs_equator
+      - /jenkins_workspace_equator
+      - /maven_repo_truemoney
+      - /maven_repo_equator
+      - /console_workspace
+      - /configuration_nano
+      - /jenkins_home_nano
+      - /jenkins_jobs_nano
+      - /jenkins_workspace_nano
+      - /maven_repo_nano
+      - /nano_reconcile-vol01_production
+      - /vitess_backup_production
+      - /truedevice-be-reconcile-production
+      - /jenkins_workspace_truemoney_01
+      - /jenkins_jobs_truemoney_01   
+      - /jenkins_home_truemoney_01
+      - /jenkins_workspace_nano_01
+      - /jenkins_home_nano_01      
+      - /jenkins_jobs_nano_01 
+    contentdir: |
+        /configuration_truemoney *(rw)
+        /configuration_equator *(rw)
+        /vault *(rw,insecure,sync,no_subtree_check,no_root_squash)
+        /jenkins_home_truemoney *(rw)
+        /jenkins_jobs_truemoney *(rw)
+        /jenkins_workspace_truemoney *(rw)
+        /jenkins_home_equator *(rw)
+        /jenkins_jobs_equator *(rw)
+        /jenkins_workspace_equator *(rw)
+        /maven_repo_truemoney *(rw)
+        /maven_repo_equator *(rw)
+        /console_workspace *(rw)
+        /configuration_nano *(rw)
+        /jenkins_home_nano *(rw)
+        /jenkins_jobs_nano *(rw)
+        /jenkins_workspace_nano *(rw)
+        /maven_repo_nano *(rw)
+        /nano_reconcile-vol01_production *(rw)
+        /vitess_backup_production *(rw)
+        /truedevice-be-reconcile-production *(rw)
+        /jenkins_workspace_truemoney_01 *(rw)
+        /jenkins_jobs_truemoney_01 *(rw)
+        /jenkins_home_truemoney_01 *(rw)
+        /jenkins_workspace_nano_01 *(rw)
+        /jenkins_home_nano_01 *(rw)
+        /jenkins_jobs_nano_01 *(rw)
+  roles:
+    - nfs

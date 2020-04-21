@@ -1,0 +1,3 @@
+{% for transport in sender_dependent_transport %} 
+{{ transport.sender }} smtp:[{{ transport.destination }}]:587
+{% endfor %}

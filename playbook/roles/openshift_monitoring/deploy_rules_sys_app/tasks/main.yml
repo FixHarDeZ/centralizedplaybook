@@ -1,0 +1,36 @@
+---
+- name: chmod sysansible/rules
+  file: 
+    path: /home/sysansible/app
+    mode: 0777
+    
+- name: delete /etc/prometheus/rules/app
+  file: 
+    path: /etc/prometheus/rules/app
+    state: absent
+
+- name: create /etc/prometheus/rules/app
+  file: 
+    path: /etc/prometheus/app
+    state: directory    
+  
+- name: coppy rules
+  command: cp -r /home/sysansible/app /etc/prometheus/rules/
+    
+- name: chmod prometheus/rules
+  file: 
+    path: /etc/prometheus/rules
+    owner: prometheus
+    group: prometheus
+    mode: 0750
+    recurse: yes
+    
+- name: reload prometheus
+  uri:
+    url: http://localhost:9090/-/reload
+    method: POST
+      
+- name: delete sysansible/app
+  file: 
+    path: /home/sysansible/app
+    state: absent

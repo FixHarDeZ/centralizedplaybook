@@ -1,0 +1,5 @@
+- name: 'REMOVE ROUTER PASSWD'
+  local_action:
+    module: file
+    dest: "{{vars.vars.passwd_path}}"
+    state: absent
