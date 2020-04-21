@@ -1,0 +1,152 @@
+[instance-openshift_master]
+10.14.20.11 instance_hostname=mn-master01
+
+[instance-openshift-route-public]
+10.14.20.21 instance_hostname=mn-infra-public01 route_group=public
+10.14.20.22 instance_hostname=mn-infra-public02 route_group=public
+
+[instance-openshift-route-partner]
+10.14.20.23 instance_hostname=mn-infra-partner01 route_group=partner
+10.14.20.24 instance_hostname=mn-infra-partner02 route_group=partner
+
+[instance-openshift-route-private]
+10.14.20.25 instance_hostname=mn-infra-private01 route_group=private
+10.14.20.26 instance_hostname=mn-infra-private02 route_group=private
+
+[instance-openshift-route-general]
+10.14.20.27 instance_hostname=mn-infra-general01 route_group=general
+10.14.20.28 instance_hostname=mn-infra-general02 route_group=general
+10.14.20.29 instance_hostname=mn-infra-general03 route_group=general
+10.14.20.30 instance_hostname=mn-infra-general04 route_group=general
+
+[instance-rabbit]
+10.14.24.121 instance_hostname=mn-rabbitmq-mgt01
+10.14.24.122 instance_hostname=mn-rabbitmq-node01
+10.14.24.123 instance_hostname=mn-rabbitmq-node02
+
+[instance-logstash]
+10.14.24.41 instance_hostname=mn-logstash01
+10.14.24.42 instance_hostname=mn-logstash02
+
+[instance-kibana]
+10.14.24.51 instance_hostname=mn-kibana01
+10.14.24.52 instance_hostname=mn-kibana02
+
+[instance-file-sharing]
+10.14.24.151 instance_hostname=mn-sftp01
+10.14.24.152 instance_hostname=mn-sftp02
+10.14.24.153 instance_hostname=mn-nfs01
+10.14.24.154 instance_hostname=mn-nfs02
+
+[instance-elasticsearch]
+10.14.24.11 instance_hostname=mn-es-master01
+10.14.24.12 instance_hostname=mn-es-master02
+10.14.24.13 instance_hostname=mn-es-master03
+10.14.24.16 instance_hostname=mn-es-client01
+10.14.24.17 instance_hostname=mn-es-client02
+10.14.24.18 instance_hostname=mn-es-client03
+10.14.24.21 instance_hostname=mn-es-data01
+10.14.24.22 instance_hostname=mn-es-data02
+10.14.24.23 instance_hostname=mn-es-data03
+
+[instance-prometheus_app_aggregate]
+10.14.24.101 instance_hostname=mn-prometheus-agg01
+[instance-prometheus_app_data]
+10.14.24.102 instance_hostname=mn-prometheus-rep01
+[instance-prometheus_sys_aggregate]
+10.14.24.103 instance_hostname=mn-prometheus-agg02
+[instance-prometheus_sys_data]
+10.14.24.104 instance_hostname=mn-prometheus-rep02
+
+[instance-alertmanager]
+10.14.24.111 instance_hostname=mn-alertmgr01
+
+[instance-grafana]
+10.14.24.112 instance_hostname=mn-grafana01
+
+[instance-redis]
+10.14.24.141 instance_hostname=mn-redis01
+10.14.24.142 instance_hostname=mn-redis02
+10.14.24.143 instance_hostname=mn-sentinel01
+10.14.24.144 instance_hostname=mn-sentinel02
+10.14.24.145 instance_hostname=mn-sentinel03
+
+[instance-vpn]
+10.14.18.2 instance_hostname=mn-vpn01
+10.14.18.3 instance_hostname=mn-vpn02
+
+[instance-mail]
+10.14.25.21 instance_hostname=mn-mail01
+10.14.25.22 instance_hostname=mn-mail02
+
+
+
+
+[promcfg-targets-elasticsearch:children]
+instance-elasticsearch
+
+[promcfg-targets-node_exporter:children]
+instance-elasticsearch
+instance-rabbit
+instance-prometheus_app_aggregate
+instance-prometheus_app_data
+instance-prometheus_sys_aggregate
+instance-prometheus_sys_data
+instance-alertmanager
+instance-grafana
+instance-logstash
+instance-kibana
+instance-file-sharing
+instance-redis
+instance-vpn
+instance-mail
+
+[instance-elasticsearch:vars]
+instance_group=elasticsearch
+
+[instance-rabbit:vars]
+instance_group=rabbit
+
+[instance-logstash:vars]
+instance_group=logstash
+
+[instance-kibana:vars]
+instance_group=elasticsearch
+
+[instance-file-sharing:vars]
+instance_group=file_sharing
+
+[instance-redis:vars]
+instance_group=redis
+
+[instance-vpn:vars]
+instance_group=vpn
+
+[instance-mail:vars]
+instance_group=mail
+
+[instance-prometheus_sys_data:vars]
+instance_group=promtheus
+
+[instance-prometheus_sys_aggregate:vars]
+instance_group=promtheus
+federate_host=prometheus-service-monitoring.cicd.ascendmoney-dev.internal
+
+[instance-prometheus_app_data:vars]
+instance_group=promtheus
+
+[instance-prometheus_app_aggregate:vars]
+instance_group=promtheus
+openshift_prometheus_app_endpoint=prometheus-cicd01.cicd.ascendmoney-dev.internal
+
+[instance-alertmanager:vars]
+instance_group=promtheus
+
+[instance-grafana:vars]
+instance_group=promtheus
+
+[instance-openshift_master:vars]
+image_node_exporter=mn-capsule.ascendmoney-dev.internal:5000/ascendmoney-non-production-cv_ocp_images-dockerhub_container-node-exporter:v0.15.0
+image_prometheus=mn-capsule.ascendmoney-dev.internal:5000/ascendmoney-non-production-cv_ocp_images-dockerhub_container-prometheus:v2.2.1
+image_kube_status=mn-capsule.ascendmoney-dev.internal:5000/ascendmoney-non-production-cv_ocp_images-dockerhub_container-kube-state-metrics:v1.3.0
+image_addon_resizer=mn-capsule.ascendmoney-dev.internal:5000/ascendmoney-non-production-cv_ocp_images-dockerhub_container-addon-resizer:1.7
